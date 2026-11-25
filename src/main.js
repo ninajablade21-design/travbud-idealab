@@ -56,20 +56,15 @@ $('#app').innerHTML = `
   <section id="films" class="films-section">
     <div class="section-shell">
       <p class="eyebrow">02 / SEE THE VISION</p>
-      <div class="films-heading"><h2>Ideas become<br><em>real journeys.</em></h2><p>Explore the TravBud vision and the door-to-door planning experience we're working towards.</p></div>
+      <div class="films-heading"><h2>Ideas become<br><em>real journeys.</em></h2><p>Watch the TravBud journey concept and the campaign film. Both videos are served from the site's own assets.</p></div>
       <div class="films-grid">
         <article class="film-card film-feature">
-          <div class="film-frame"><video controls playsinline preload="metadata" poster="" aria-label="TravBud product overview"><source src="${import.meta.env.BASE_URL}travbud-ad-silent.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
-          <div class="film-meta"><span>01 / PRODUCT OVERVIEW</span><h3>Meet TravBud</h3><p>A look at the connected travel experience we're imagining.</p></div>
+          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud door-to-door planning video"><source src="${import.meta.env.BASE_URL}videos/viraldub-travbud-plan-door-to-door.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
+          <div class="film-meta"><span>01 / DOOR-TO-DOOR PLANNING</span><h3>Plan the whole journey</h3><p>Explore the TravBud idea for connected door-to-door travel planning.</p></div>
         </article>
         <article class="film-card">
-          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud door-to-door travel planning"><source src="${import.meta.env.BASE_URL}viraldub-travbud-plan-door-to-door.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
-          <div class="film-meta"><span>02 / DOOR-TO-DOOR PLANNING</span><h3>One journey, connected</h3><p>See the idea behind live fares and a more complete travel plan.</p></div>
-        </article>
-        <article class="film-card">
-          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud campaign video with music"><source src="${import.meta.env.BASE_URL}travbud-ad-with-music%20(5).mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
-          <div class="film-meta"><span>03 / CAMPAIGN FILM</span><h3>TravBud in motion</h3><p>Another cut from the TravBud product story.</p></div>
-        </article>
+          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud campaign film with music"><source src="${import.meta.env.BASE_URL}videos/travbud-ad-with-music.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
+          <div class="film-meta"><span>02 / CAMPAIGN FILM</span><h3>TravBud in motion</h3><p>The TravBud campaign film, with its original music.</p></div>
         </article>
       </div>
     </div>
