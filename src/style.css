@@ -36,3 +36,51 @@ body:after{width:500px;height:500px;right:-250px;top:52vh;background:#d3b77d;ani
 @keyframes pageNudge{0%{opacity:.82;transform:translateY(5px)}100%{opacity:1;transform:translateY(0)}}
 @media(max-width:700px){.films-section{padding:78px 0}.films-heading{display:block}.films-heading>p{margin-top:18px}.films-grid{grid-template-columns:1fr}.film-meta{padding:18px}}
 @media(prefers-reduced-motion:reduce){body:before,body:after,.hero-art,.hero-art:after,.films-section:before{animation:none!important}.reveal{opacity:1;transform:none;transition:none}}
+
+/* Accessibility-first scale: larger interface icons and readable supporting text. */
+:root{--ui-text-min:12px}
+body{font-size:14px}
+.eyebrow,.focus-tag,.focus-num,.art-panel>span,.art-panel small,.art-stamp,.form-heading,.optional,.char-count,.form-footnote,footer>span,.category-tag,.admin-idea time,.admin-byline,.admin-controls label,.copy-idea,.footer-team{font-size:12px}
+nav,.team-link,.hero-lead,.intro-copy p,.focus-heading>p,.focus-card p,.step p,.submit-intro>p:not(.eyebrow),.private-card small,.idea-form>label:not(.consent-row),.consent-row b,.consent-row small,.dialog-copy,.dialog form label,.admin-message,.admin-summary small,.admin-idea p,.admin-idea h3,.empty-inbox,.loading,.admin-controls select,.outline-btn,.toast,.films-heading>p,.film-meta p{font-size:13px}
+.focus-icon{width:54px;height:54px;font-size:27px;border-radius:12px;box-shadow:0 8px 25px #82e5df12}
+.brand-mark{width:42px;height:42px;font-size:25px}
+.lock,.private-card>span{font-size:25px}
+.eyebrow-dot{width:9px;height:9px}
+.team-link{font-size:13px;padding:13px 18px}
+.primary{font-size:14px;padding:17px 24px}
+.text-link{font-size:14px}
+.art-panel>span,.art-panel small,.art-stamp{letter-spacing:1.2px}
+.admin-summary strong{font-size:29px}
+.admin-idea h3{font-size:18px}
+.admin-controls select,.copy-idea{font-size:12px;padding:10px 12px}
+.idea-form input:not([type=checkbox]),.idea-form select,.idea-form textarea,.dialog input{font-size:14px;padding:15px 16px}
+.film-meta>span{font-size:12px}
+.film-meta h3{font-size:21px}
+.team-login-actions{display:flex;gap:12px}
+#team-code-panel{margin-top:16px;padding:18px;background:#132b3b;border:1px solid #82e5df33}
+#team-code-panel input{font-size:22px;letter-spacing:8px;text-align:center;max-width:240px;margin-bottom:12px}
+.text-button{display:block;margin:12px 0 0;background:none;border:0;color:var(--cyan);font-size:13px;text-decoration:underline;text-underline-offset:4px}
+.dialog form .primary{margin-top:12px}
+.close{width:48px;height:48px;font-size:36px}
+.team-link span,.primary span,.text-link span{font-size:20px}
+.brand-mark,.focus-icon,.lock,.private-card>span,.art-node{transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s}
+.focus-card:hover .focus-icon{transform:rotate(-9deg) scale(1.12);box-shadow:0 0 28px #82e5df35}
+.team-link:hover .brand-mark{transform:rotate(35deg)}
+.film-card,.focus-card,.step,.idea-form,.dialog{animation:cardArrive .8s both}
+.film-card:nth-child(2){animation-delay:100ms}.film-card:nth-child(3){animation-delay:180ms}
+button:active,.primary:active{transform:scale(.97)}
+.modal.open .dialog{animation:dialogPop .42s cubic-bezier(.2,.8,.2,1) both}
+.site-header nav a{position:relative;padding:12px 0}
+.site-header nav a:after{content:"";position:absolute;left:0;bottom:4px;width:100%;height:1px;background:var(--cyan);transform:scaleX(0);transform-origin:right;transition:transform .3s}
+.site-header nav a:hover:after{transform:scaleX(1);transform-origin:left}
+.ticker{animation:tickerPulse 8s ease-in-out infinite alternate}
+.art-orbit{animation:orbitFloat 18s ease-in-out infinite alternate}
+.orbit-b{animation-direction:alternate-reverse}
+.focus-card:before,.film-card:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,transparent 25%,#ffffff0b 48%,transparent 70%);transform:translateX(-120%);transition:transform .8s}
+.focus-card:hover:before,.film-card:hover:before{transform:translateX(120%)}
+@keyframes cardArrive{from{opacity:.75;filter:blur(3px)}to{opacity:1;filter:blur(0)}}
+@keyframes dialogPop{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes tickerPulse{from{background-color:#ffffff00}to{background-color:#82e5df08}}
+@keyframes orbitFloat{from{translate:0 0}to{translate:16px -10px}}
+@media(max-width:700px){.focus-icon{width:58px;height:58px;font-size:29px}.brand-mark{width:38px;height:38px}.team-link{font-size:12px}.admin-summary small{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.film-card,.focus-card,.step,.idea-form,.dialog{animation:none}.ticker{animation:none}.art-orbit{animation:none}}
