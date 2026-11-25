@@ -222,3 +222,150 @@ button,input,textarea,select{
   }
   .submit-intro h2{font-size:clamp(40px,10vw,53px);letter-spacing:-.04em}
 }
+
+
+/* High-readability form system: stronger contrast, larger type and clearer spacing. */
+.idea-form{
+  background:#f7faf9;
+  color:#142630;
+  font-family:'DM Sans',Arial,Helvetica,sans-serif;
+  font-size:16px;
+  line-height:1.65;
+}
+.idea-form .form-heading{
+  color:#294b4b;
+  font-size:13px;
+  line-height:1.5;
+  letter-spacing:1.1px;
+  font-weight:800;
+}
+.idea-form>label:not(.consent-row){
+  color:#142630;
+  font-size:15px;
+  line-height:1.5;
+  font-weight:750;
+  margin:24px 0 9px;
+}
+.idea-form sup{color:#08766f;font-weight:800}
+.idea-form .optional{
+  color:#405e5b;
+  font-size:11px;
+  line-height:1.5;
+  letter-spacing:.7px;
+  font-weight:800;
+}
+.idea-form input:not([type=checkbox]),
+.idea-form select,
+.idea-form textarea{
+  min-height:52px;
+  padding:14px 16px;
+  background:#fff;
+  color:#152a34;
+  border:1.5px solid #a9bbb6;
+  border-radius:9px;
+  font-family:'DM Sans',Arial,Helvetica,sans-serif;
+  font-size:16px;
+  line-height:1.55;
+}
+.idea-form textarea{min-height:120px;line-height:1.65}
+.idea-form input::placeholder,
+.idea-form textarea::placeholder{
+  color:#657872;
+  opacity:1;
+}
+.idea-form select:invalid,
+.idea-form select:has(option:checked[value=""]){color:#526761}
+.idea-form select option{background:#fff;color:#152a34}
+.idea-form input:focus,
+.idea-form select:focus,
+.idea-form textarea:focus{
+  outline:3px solid #087e7660;
+  outline-offset:1px;
+  border-color:#087e76;
+  box-shadow:0 0 0 3px #087e7618;
+}
+.idea-form .chips{gap:10px;margin:10px 0 8px}
+.idea-form .chip{display:inline-flex;position:relative}
+.idea-form .chip span{
+  display:inline-flex;
+  align-items:center;
+  min-height:42px;
+  padding:9px 14px;
+  border:1.5px solid #9aada7;
+  border-radius:9px;
+  background:#fff;
+  color:#203b40;
+  font-size:14px;
+  line-height:1.4;
+  font-weight:600;
+}
+.idea-form .chip:hover span{
+  opacity:1;
+  border-color:#287f78;
+  background:#f0faf7;
+}
+.idea-form .chip input:checked+span{
+  background:#d9f3ed;
+  border-color:#087e76;
+  color:#064c47;
+  box-shadow:inset 0 0 0 1px #087e76;
+}
+.idea-form .chip input:focus-visible+span{
+  outline:3px solid #087e7680;
+  outline-offset:3px;
+}
+.idea-form .consent-row{
+  gap:13px;
+  margin-top:24px;
+  color:#172f35;
+}
+.idea-form .consent-row input{
+  width:19px;
+  height:19px;
+  margin-top:3px;
+  accent-color:#087e76;
+}
+.idea-form .consent-row b{
+  color:#172f35;
+  font-size:14px;
+  line-height:1.55;
+  font-weight:750;
+}
+.idea-form .consent-row small{
+  color:#405b58;
+  font-size:13px;
+  line-height:1.65;
+  margin-top:6px;
+}
+.idea-form .required-consent{
+  border-top:1px solid #c4d2cd;
+  padding-top:20px;
+}
+.idea-form .char-count,
+.idea-form .form-footnote{
+  color:#526963;
+  font-size:12px;
+  line-height:1.6;
+}
+.idea-form .form-feedback{
+  color:#075f52;
+  font-size:14px;
+  line-height:1.6;
+  font-weight:650;
+}
+.idea-form .submit-button{
+  min-height:56px;
+  border-radius:9px;
+  font-size:16px;
+  font-weight:800;
+}
+@media(max-width:700px){
+  .idea-form{padding:26px 20px}
+  .idea-form .form-heading{font-size:11px;gap:12px}
+  .idea-form>label:not(.consent-row){font-size:15px;margin-top:22px}
+  .idea-form .optional{display:block;float:none;margin-top:3px;font-size:10px}
+  .idea-form input:not([type=checkbox]),
+  .idea-form select,
+  .idea-form textarea{font-size:16px;min-height:54px}
+  .idea-form .chip span{font-size:14px;min-height:42px}
+}
