@@ -84,3 +84,21 @@ button:active,.primary:active{transform:scale(.97)}
 @keyframes orbitFloat{from{translate:0 0}to{translate:16px -10px}}
 @media(max-width:700px){.focus-icon{width:58px;height:58px;font-size:29px}.brand-mark{width:38px;height:38px}.team-link{font-size:12px}.admin-summary small{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.film-card,.focus-card,.step,.idea-form,.dialog{animation:none}.ticker{animation:none}.art-orbit{animation:none}}
+
+/* Reliable media fallbacks and a polished, legible admin sign-in panel. */
+.video-unavailable{display:grid;place-items:center;min-height:300px;background:radial-gradient(ellipse at 50% 10%,#23465a 0%,#101f2d 60%,#08131e 100%);padding:26px}
+.video-placeholder{max-width:430px;text-align:center;display:grid;justify-items:center;gap:14px;color:#f4f8fa}
+.video-placeholder>span{font-size:11px;letter-spacing:2px;color:#83e5df;font-weight:800}
+.video-placeholder strong{font:650 clamp(18px,2.4vw,24px)/1.35 Manrope,sans-serif}
+.video-placeholder small{font-size:13px;line-height:1.6;color:#b8c9d2;overflow-wrap:anywhere}
+#admin-modal .dialog{width:min(540px,calc(100vw - 32px));padding:clamp(26px,5vw,42px);border-radius:22px}
+#admin-modal .dialog h2{font-size:clamp(28px,4vw,38px);line-height:1.15;letter-spacing:-1px}
+#admin-modal .dialog-copy{font-size:15px;line-height:1.7;color:#aebfca}
+#admin-login label,#team-code-panel label{display:block;font-size:14px;font-weight:700;margin:18px 0 9px}
+#admin-login input,#team-code-panel input{width:100%;min-height:56px;font-size:16px;padding:16px 18px;border-radius:12px}
+#admin-login .primary,#team-code-panel .primary{width:100%;min-height:56px;font-size:15px;font-weight:750;border-radius:12px;margin-top:16px}
+#team-code-panel{margin-top:22px;padding:22px;border-radius:16px;background:linear-gradient(135deg,#112b3b,#10202e);border:1px solid #82e5df44}
+#team-code-panel input{font-size:28px;letter-spacing:12px;text-align:center;font-weight:700;max-width:100%;color:#fff}
+#team-code-panel .text-button{font-size:14px;margin:15px auto 0}
+.admin-message{font-size:14px;line-height:1.65;padding-top:12px;min-height:24px}
+@media(max-width:700px){.video-unavailable{min-height:230px}#admin-modal .dialog{padding:24px}}
