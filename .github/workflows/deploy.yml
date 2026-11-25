@@ -23,11 +23,9 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH }}
-          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_HERO_VIDEO_URL: ${{ vars.VITE_HERO_VIDEO_URL }}
-          VITE_STORY_VIDEO_URL: ${{ vars.VITE_STORY_VIDEO_URL }}
+          VITE_BASE_PATH: /travbud-idealab/
+          VITE_SUPABASE_URL: https://rsnmwoxawgmpebiusuqr.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_BHDoxPD_pAnYAKD5t7QCTg_swTH27k-
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
