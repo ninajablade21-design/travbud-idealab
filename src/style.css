@@ -178,3 +178,16 @@ button:active,.primary:active{transform:scale(.97)}
 @keyframes videoOrbitFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @keyframes videoOrbitPulse{0%{transform:scale(.86);opacity:.75}100%{transform:scale(1.28);opacity:0}}
 @media(prefers-reduced-motion:reduce){.films-section:before,.films-section:after,.films-grid .film-card,.video-unavailable:before,.video-placeholder,.video-status i,.video-orbit,.video-orbit:before,.video-orbit:after{animation:none!important;opacity:1;transform:none}.film-card,.film-frame video,.video-upload-link{transition:none!important}}
+
+/* Survey chips + admin insights. Motion: transform/opacity only, 150ms ease-out. */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}.chip{display:inline-flex;margin:0!important}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-block;padding:10px 14px;border:1px solid var(--line);border-radius:999px;font-size:13px;color:#c5d3de;cursor:pointer;transition:opacity 150ms cubic-bezier(.16,1,.3,1)}
+.chip:hover span{opacity:.85}.chip input:checked+span{background:var(--cyan);border-color:var(--cyan);color:#07111e;font-weight:700}
+.chip input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
+.admin-insights{margin:18px 0}.insight{margin-bottom:18px}.insight h4{font-size:14px;margin:0 0 10px}.insight-count{font-size:13px;color:var(--muted)}
+.barrow{display:grid;grid-template-columns:minmax(120px,1.3fr) 2fr 28px;gap:10px;align-items:center;font-size:13px;margin:6px 0}
+.bar{height:8px;background:#ffffff14;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--cyan);transform-origin:left;animation:barIn 200ms cubic-bezier(.16,1,.3,1) both}
+.admin-export{display:flex;gap:8px;margin-bottom:14px}
+@keyframes barIn{from{transform:scaleX(0)}}
+@media(prefers-reduced-motion:reduce){.bar i{animation:none}.chip span{transition:none}}
