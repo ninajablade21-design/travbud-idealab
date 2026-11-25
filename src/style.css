@@ -102,3 +102,16 @@ button:active,.primary:active{transform:scale(.97)}
 #team-code-panel .text-button{font-size:14px;margin:15px auto 0}
 .admin-message{font-size:14px;line-height:1.65;padding-top:12px;min-height:24px}
 @media(max-width:700px){.video-unavailable{min-height:230px}#admin-modal .dialog{padding:24px}}
+
+/* Dual-mode private team authentication */
+.team-auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px;margin:22px 0 16px;background:#091824;border:1px solid #ffffff18;border-radius:14px}
+.team-auth-tab{min-height:48px;border:1px solid transparent;border-radius:10px;background:transparent;color:#b7c8d1;font:700 14px inherit;cursor:pointer;transition:all .22s ease}
+.team-auth-tab.active{background:linear-gradient(135deg,#1b4352,#17313f);border-color:#82e5df66;color:#f5ffff;box-shadow:0 5px 20px #0003}
+.team-auth-form{display:grid;gap:10px}
+.team-auth-form[hidden]{display:none}
+.team-auth-form label{font-size:14px;font-weight:750;margin:10px 0 0}
+.team-auth-form input{width:100%;min-height:58px;font-size:16px;padding:16px 18px;border:1px solid #ffffff24;border-radius:12px;background:#0b1b28;color:#fff}
+.team-auth-form input:focus{outline:2px solid #82e5df88;outline-offset:2px}
+.team-auth-form .primary{width:100%;min-height:58px;margin-top:12px;font-size:15px}
+#admin-modal .dialog{max-height:min(90vh,900px);overflow:auto}
+@media(max-width:600px){.team-auth-tab{font-size:13px}.team-auth-tabs{margin:18px 0 12px}}
