@@ -92,7 +92,7 @@ $('#app').innerHTML = `
   <section class="closing section-shell"><p class="eyebrow">TRAVBUD IDEALAB</p><h2>Better journeys don't<br>happen by <em>accident.</em></h2><p>They happen when we listen to the people taking them.</p><a href="#submit" class="text-link">Add your voice <span>↗</span></a></section>
 </main>
 <footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><button id="footer-team" class="footer-team">Private team access ↗</button></footer>
-<div class="modal" id="admin-modal" aria-hidden="true"><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Sign in with an authorised team email to view and manage private submissions.</p><form id="admin-login"><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><div class="team-login-actions"><button class="primary" type="submit">Send secure sign-in link <span aria-hidden="true">↗</span></button></div></form><p id="admin-message" class="admin-message" role="status"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
+<div class="modal" id="admin-modal" aria-hidden="true"><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Use your authorised team account. Password sign-in works without sending an email; secure email links are available as a backup.</p><div class="team-auth-tabs" role="tablist" aria-label="Team sign-in method"><button type="button" class="team-auth-tab active" id="tab-password" role="tab" aria-selected="true" aria-controls="password-login">Password</button><button type="button" class="team-auth-tab" id="tab-link" role="tab" aria-selected="false" aria-controls="link-login">Email link</button></div><form id="password-login" class="team-auth-form"><label for="password-email">Work email address</label><input id="password-email" type="email" required autocomplete="username" placeholder="name@company.com"><label for="team-password">Password</label><input id="team-password" type="password" required autocomplete="current-password" placeholder="Your team password"><button class="primary" type="submit">Sign in to private inbox <span aria-hidden="true">↗</span></button></form><form id="link-login" class="team-auth-form" hidden><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><button class="primary" type="submit">Email me a secure sign-in link <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 
 const form = $('#idea-form');
@@ -128,36 +128,74 @@ function closeAdmin() { modal.classList.remove('open'); modal.setAttribute('aria
 $('#admin-open').onclick = openAdmin; $('#footer-team').onclick = openAdmin; $('#admin-close').onclick = closeAdmin;
 modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdmin(); });
+function showTeamAuthTab(tab) {
+  const password = tab === 'password';
+  $('#password-login').hidden = !password;
+  $('#link-login').hidden = password;
+  $('#tab-password').classList.toggle('active', password);
+  $('#tab-link').classList.toggle('active', !password);
+  $('#tab-password').setAttribute('aria-selected', String(password));
+  $('#tab-link').setAttribute('aria-selected', String(!password));
+  $('#admin-message').textContent = '';
+}
+$('#tab-password').addEventListener('click', () => showTeamAuthTab('password'));
+$('#tab-link').addEventListener('click', () => showTeamAuthTab('link'));
+
+$('#password-login').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!supabase) return;
+  const email = $('#password-email').value.trim().toLowerCase();
+  const password = $('#team-password').value;
+  const button = $('#password-login button[type="submit"]');
+  button.disabled = true; button.textContent = 'Signing in securely…';
+  $('#admin-message').textContent = 'Checking your team account…';
+  try {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    button.disabled = false; button.textContent = 'Sign in to private inbox ↗';
+    if (error) {
+      $('#admin-message').textContent = /invalid login credentials/i.test(error.message || '')
+        ? 'Email or password is incorrect. Check your details, or use the Email link tab if you need passwordless access.'
+        : (error.message || 'Sign-in failed. Please try again.');
+      return;
+    }
+    $('#team-password').value = '';
+    $('#admin-message').textContent = 'Signed in. Checking private team access…';
+    await checkAdmin();
+  } catch (error) {
+    button.disabled = false; button.textContent = 'Sign in to private inbox ↗';
+    $('#admin-message').textContent = 'Connection issue. Check your internet and try again.';
+  }
+});
+
 const OTP_COOLDOWN_STORAGE = 'travbud-idealab-otp-next-request';
 let otpCooldownInterval = null;
 function setOtpCooldown(seconds, message) {
   const until = Date.now() + seconds * 1000;
   try { localStorage.setItem(OTP_COOLDOWN_STORAGE, String(until)); } catch {}
-  const button = $('#admin-login button[type="submit"]');
+  const button = $('#link-login button[type="submit"]');
   clearInterval(otpCooldownInterval);
   const update = () => {
     const remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
     button.disabled = remaining > 0;
-    button.textContent = remaining ? 'Try again in ' + remaining + 's' : 'Send secure sign-in link ↗';
+    button.textContent = remaining ? 'Try again in ' + remaining + 's' : 'Email me a secure sign-in link ↗';
     if (!remaining) clearInterval(otpCooldownInterval);
   };
   $('#admin-message').textContent = message;
   update();
-  otpCooldownInterval = setInterval(update, 1000);
 }
 try {
   const until = Number(localStorage.getItem(OTP_COOLDOWN_STORAGE) || 0);
   const remaining = Math.ceil((until - Date.now()) / 1000);
   if (remaining > 0) setOtpCooldown(remaining, 'A sign-in email was recently requested. Please wait before requesting another.');
 } catch {}
-$('#admin-login').addEventListener('submit', async e => {
+$('#link-login').addEventListener('submit', async e => {
   e.preventDefault();
   if (!supabase) return;
   const email = $('#admin-email').value.trim().toLowerCase();
-  const button = $('#admin-login button[type="submit"]');
+  const button = $('#link-login button[type="submit"]');
   if (!email || button.disabled) return;
   button.disabled = true; button.textContent = 'Sending secure link…';
-  $('#admin-message').textContent = 'We are preparing your private IdeaLab sign-in email.';
+  $('#admin-message').textContent = 'Preparing your private IdeaLab sign-in email…';
   try {
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -165,19 +203,19 @@ $('#admin-login').addEventListener('submit', async e => {
     });
     if (error) {
       if (error.status === 429 || /rate.?limit|too many requests/i.test(error.message || '')) {
-        setOtpCooldown(600, 'Supabase has temporarily limited email delivery. Your account is safe. Wait 10 minutes before trying again. Custom SMTP must be configured to restore reliable email sign-in.');
+        setOtpCooldown(600, 'Email sending is temporarily limited by Supabase. Use Password sign-in instead, or wait before requesting another link. Custom SMTP is needed for reliable email delivery.');
       } else {
-        button.disabled = false; button.textContent = 'Send secure sign-in link ↗';
+        button.disabled = false; button.textContent = 'Email me a secure sign-in link ↗';
         $('#admin-message').textContent = /signups not allowed/i.test(error.message || '')
-          ? 'This address is not registered as a team account yet. An administrator must create the account first.'
+          ? 'This address is not registered as a team account. An administrator must create it first.'
           : (error.message || 'We could not send your sign-in link.');
       }
       return;
     }
-    setOtpCooldown(60, 'Check your inbox for your secure TravBud IdeaLab sign-in link. Open the newest email on this device. You will stay signed in on this device after successful verification.');
+    setOtpCooldown(60, 'Check your inbox for your secure TravBud IdeaLab link. Open the newest email on this device.');
   } catch (error) {
-    button.disabled = false; button.textContent = 'Send secure sign-in link ↗';
-    $('#admin-message').textContent = 'Connection issue. Please check your internet and try again.';
+    button.disabled = false; button.textContent = 'Email me a secure sign-in link ↗';
+    $('#admin-message').textContent = 'Connection issue. Check your internet and try again.';
   }
 });
 async function checkAdmin() {
