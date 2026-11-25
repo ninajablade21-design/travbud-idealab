@@ -299,7 +299,7 @@ document.querySelectorAll('video[data-video-src]').forEach(async video => {
     const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
     if (!response.ok) {
       frame.classList.add('video-unavailable');
-      frame.innerHTML = '<div class="video-placeholder"><span>VIDEO ASSET NOT UPLOADED</span><strong>This film will appear here once its MP4 is added to the site.</strong><small>Expected file: ' + url.split('/').pop().replace(/%20/g, ' ') + '</small></div>';
+      frame.innerHTML = '<div class="video-placeholder"><span class="video-status"><i></i> FILM READY FOR UPLOAD</span><div class="video-orbit"><span class="video-play-mark">▶</span></div><strong>Almost ready for the big screen.</strong><small>Add this MP4 to the <b>videos</b> folder in the TravBud GitHub repository.</small><a class="video-upload-link" href="https://github.com/ninajablade21-design/travbud-idealab/tree/main/videos" target="_blank" rel="noopener">OPEN VIDEO UPLOAD FOLDER <span>↗</span></a><code>' + url.split('/').pop().replace(/%20/g, ' ') + '</code></div>';
       return;
     }
     const source = document.createElement('source');
