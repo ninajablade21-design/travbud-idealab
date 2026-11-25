@@ -105,7 +105,7 @@ $('#app').innerHTML = `
   </section>
   <section id="submit" class="submit-section">
     <div class="submit-shell">
-      <div class="submit-intro"><p class="eyebrow">04 / YOUR TURN</p><h2>What should<br>travel <em>feel like?</em></h2><p>Share a challenge you've faced or an idea that could make travelling simpler, more connected or more inclusive.</p><div class="private-card"><span>⌑</span><div><b>Private by design</b><small>Your name and submission are shared only with authorised TravBud IdeaLab admins. Nothing is published publicly.</small></div></div></div>
+      <div class="submit-intro"><p class="eyebrow">SHARE AN IDEA</p><h2>Help shape<br><em>better journeys.</em></h2><p>Share a challenge you've faced or an idea that could make travelling simpler, more connected or more inclusive.</p><div class="private-card"><span>⌑</span><div><b>Private by design</b><small>Your name and submission are shared only with authorised TravBud IdeaLab admins. Nothing is published publicly.</small></div></div></div>
       <form id="idea-form" class="idea-form">
         <div class="form-heading"><span>IDEA SUBMISSION</span><span>PRIVATE INBOX · 01</span></div>
         <label for="submitter-name">Your name <sup>*</sup></label><input id="submitter-name" name="submitter_name" required minlength="2" maxlength="80" autocomplete="name" placeholder="How should we address you?">
@@ -140,18 +140,17 @@ form.addEventListener('submit', async e => {
   if (name.length < 2 || title.length < 4 || details.length < 10) { feedback.textContent = 'Please complete the required fields before sending.'; return; }
   const consent = $('#consent-device').checked;
   const deviceContext = consent ? { user_agent: navigator.userAgent.slice(0, 300), language: navigator.language || null, screen: { width: screen.width, height: screen.height }, viewport: { width: innerWidth, height: innerHeight } } : {};
-  const payload = { submitter_name: name, category: data.get('category'), title, details, audience: $('#idea-audience').value || null, impact: $('#idea-impact').value || null, email: String(data.get('email') || '').trim() || null, consent_device_data: consent, device_context: deviceContext, status: 'new' };
+  const payload = { submitter_name: name, category: data.get('category'), title, details, email: String(data.get('email') || '').trim() || null, consent_device_data: consent, device_context: deviceContext, status: 'new' };
   const button = form.querySelector('button[type="submit"]');
   button.disabled = true; button.textContent = 'Sending securely…'; feedback.textContent = '';
   const { error } = await supabase.from('idea_submissions').insert(payload);
   let submitError = error;
   if (submitError && /column|schema cache|PGRST204/i.test(`${submitError.code || ''} ${submitError.message || ''}`)) {
-    const meta = [`Submitted by: ${name}`, payload.audience ? `Audience: ${payload.audience}` : '', payload.impact ? `Importance: ${payload.impact}` : ''].filter(Boolean).join(' | ');
-    const legacyDetails = `${details}\n\n[${meta}]`.slice(0, 5000);
     const retry = await supabase.from('idea_submissions').insert({
+      submitter_name: payload.submitter_name,
       category: payload.category,
       title: payload.title,
-      details: legacyDetails,
+      details: payload.details,
       email: payload.email,
       consent_device_data: payload.consent_device_data,
       device_context: payload.device_context,
