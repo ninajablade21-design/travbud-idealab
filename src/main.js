@@ -112,10 +112,29 @@ function closeAdmin() { modal.classList.remove('open'); modal.setAttribute('aria
 $('#admin-open').onclick = openAdmin; $('#footer-team').onclick = openAdmin; $('#admin-close').onclick = closeAdmin;
 modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdmin(); });
+let otpLastSentAt = 0;
 $('#admin-login').addEventListener('submit', async e => {
   e.preventDefault(); if (!supabase) return;
-  const { error } = await supabase.auth.signInWithOtp({ email: $('#admin-email').value.trim(), options: { emailRedirectTo: IDEALAB_URL } });
-  $('#admin-message').textContent = error ? error.message : 'Secure sign-in link sent. Open the newest email on this device; older links expire when a newer one is requested.';
+  const now = Date.now();
+  const wait = Math.ceil((otpLastSentAt + 60000 - now) / 1000);
+  if (wait > 0) { $('#admin-message').textContent = 'Please wait ' + wait + ' seconds before requesting another sign-in email.'; return; }
+  const button = $('#admin-login button[type="submit"]');
+  const email = $('#admin-email').value.trim().toLowerCase();
+  if (!email) return;
+  button.disabled = true; button.textContent = 'Requesting secure link…';
+  $('#admin-message').textContent = 'Sending one sign-in email. Please do not click repeatedly.';
+  try {
+    const result = await supabase.auth.signInWithOtp({ email: email, options: { emailRedirectTo: IDEALAB_URL, shouldCreateUser: false } });
+    if (result.error) {
+      if (result.error.status === 429) { otpLastSentAt = Date.now() + 240000; $('#admin-message').textContent = 'Supabase has temporarily rate-limited email requests. Wait 5 minutes before trying again. Configure custom SMTP for reliable sign-in.'; }
+      else { $('#admin-message').textContent = result.error.message || 'Could not send the sign-in email.'; }
+      button.disabled = false; button.textContent = 'Send secure sign-in link ↗'; return;
+    }
+    otpLastSentAt = Date.now();
+    $('#admin-message').textContent = 'If this is an authorised admin account, a secure link has been sent. Check your inbox and use only the newest link.';
+    button.textContent = 'Email sent — wait 60s';
+    window.setTimeout(() => { button.disabled = false; button.textContent = 'Send secure sign-in link ↗'; }, 60000);
+  } catch (err) { button.disabled = false; button.textContent = 'Send secure sign-in link ↗'; $('#admin-message').textContent = 'Network error. Please try again later.'; }
 });
 async function checkAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
