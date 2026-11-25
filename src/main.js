@@ -65,6 +65,10 @@ $('#app').innerHTML = `
         <article class="film-card">
           <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud door-to-door travel planning"><source src="/viraldub-travbud-plan-door-to-door.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
           <div class="film-meta"><span>02 / DOOR-TO-DOOR PLANNING</span><h3>One journey, connected</h3><p>See the idea behind live fares and a more complete travel plan.</p></div>
+        <article class="film-card">
+          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud campaign video with music"><source src="/travbud-ad-with-music%20(5).mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
+          <div class="film-meta"><span>03 / CAMPAIGN FILM</span><h3>TravBud in motion</h3><p>Another cut from the TravBud product story.</p></div>
+        </article>
         </article>
       </div>
     </div>
@@ -128,29 +132,27 @@ function closeAdmin() { modal.classList.remove('open'); modal.setAttribute('aria
 $('#admin-open').onclick = openAdmin; $('#footer-team').onclick = openAdmin; $('#admin-close').onclick = closeAdmin;
 modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdmin(); });
-let otpLastSentAt = 0;
 $('#admin-login').addEventListener('submit', async e => {
   e.preventDefault(); if (!supabase) return;
-  const now = Date.now();
-  const wait = Math.ceil((otpLastSentAt + 60000 - now) / 1000);
-  if (wait > 0) { $('#admin-message').textContent = 'Please wait ' + wait + ' seconds before requesting another sign-in email.'; return; }
   const button = $('#admin-login button[type="submit"]');
   const email = $('#admin-email').value.trim().toLowerCase();
   if (!email) return;
-  button.disabled = true; button.textContent = 'Requesting secure link…';
-  $('#admin-message').textContent = 'Sending one sign-in email. Please do not click repeatedly.';
+  button.disabled = true; button.textContent = 'Sending secure link…';
+  $('#admin-message').textContent = 'Requesting one sign-in email. Once signed in, your session will stay active on this device.';
   try {
     const result = await supabase.auth.signInWithOtp({ email: email, options: { emailRedirectTo: IDEALAB_URL, shouldCreateUser: false } });
     if (result.error) {
-      if (result.error.status === 429) { otpLastSentAt = Date.now() + 240000; $('#admin-message').textContent = 'Supabase has temporarily rate-limited email requests. Wait 5 minutes before trying again. Configure custom SMTP for reliable sign-in.'; }
-      else { $('#admin-message').textContent = result.error.message || 'Could not send the sign-in email.'; }
+      $('#admin-message').textContent = result.error.status === 429
+        ? 'Supabase email delivery is temporarily rate-limited. You do not need a new link while your session is active. Configure custom SMTP for better delivery.'
+        : (result.error.message || 'Could not send the sign-in email.');
       button.disabled = false; button.textContent = 'Send secure sign-in link ↗'; return;
     }
-    otpLastSentAt = Date.now();
-    $('#admin-message').textContent = 'If this is an authorised admin account, a secure link has been sent. Check your inbox and use only the newest link.';
-    button.textContent = 'Email sent — wait 60s';
-    window.setTimeout(() => { button.disabled = false; button.textContent = 'Send secure sign-in link ↗'; }, 60000);
-  } catch (err) { button.disabled = false; button.textContent = 'Send secure sign-in link ↗'; $('#admin-message').textContent = 'Network error. Please try again later.'; }
+    $('#admin-message').textContent = 'If this is an authorised admin account, the link has been sent. Open the newest email. You should not need to repeat this on this device unless you sign out or your session expires.';
+    button.disabled = false; button.textContent = 'Send another link if needed ↗';
+  } catch (err) {
+    button.disabled = false; button.textContent = 'Send secure sign-in link ↗';
+    $('#admin-message').textContent = 'Network error. Please try again later.';
+  }
 });
 async function checkAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
