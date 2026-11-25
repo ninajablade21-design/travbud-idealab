@@ -65,6 +65,7 @@ $('#app').innerHTML = `
         <article class="film-card">
           <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud door-to-door travel planning"><source src="/viraldub-travbud-plan-door-to-door.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
           <div class="film-meta"><span>02 / DOOR-TO-DOOR PLANNING</span><h3>One journey, connected</h3><p>See the idea behind live fares and a more complete travel plan.</p></div>
+        </article>
         <article class="film-card">
           <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud campaign video with music"><source src="/travbud-ad-with-music%20(5).mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
           <div class="film-meta"><span>03 / CAMPAIGN FILM</span><h3>TravBud in motion</h3><p>Another cut from the TravBud product story.</p></div>
@@ -96,7 +97,7 @@ $('#app').innerHTML = `
   <section class="closing section-shell"><p class="eyebrow">TRAVBUD IDEALAB</p><h2>Better journeys don't<br>happen by <em>accident.</em></h2><p>They happen when we listen to the people taking them.</p><a href="#submit" class="text-link">Add your voice <span>↗</span></a></section>
 </main>
 <footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><button id="footer-team" class="footer-team">Private team access ↗</button></footer>
-<div class="modal" id="admin-modal" aria-hidden="true"><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Sign in with an authorised team email to view and manage private submissions.</p><form id="admin-login"><label for="admin-email">Team email</label><input id="admin-email" type="email" required autocomplete="email" placeholder="team@example.com"><button class="primary" type="submit">Send secure sign-in link ↗</button></form><p id="admin-message" class="admin-message" role="status"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
+<div class="modal" id="admin-modal" aria-hidden="true"><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Sign in with an authorised team email to view and manage private submissions.</p><form id="admin-login"><label for="admin-email">Team email</label><input id="admin-email" type="email" required autocomplete="email" placeholder="team@example.com"><div class="team-login-actions"><button class="primary" type="submit">Email me a sign-in code ↗</button></div><div id="team-code-panel" hidden><label for="admin-code">6-digit email code</label><input id="admin-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000"><button class="primary" id="verify-team-code" type="button">Verify code and open inbox</button><button class="text-button" id="resend-team-code" type="button">Send a new code</button></div></form><p id="admin-message" class="admin-message" role="status"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 
 const form = $('#idea-form');
@@ -132,27 +133,49 @@ function closeAdmin() { modal.classList.remove('open'); modal.setAttribute('aria
 $('#admin-open').onclick = openAdmin; $('#footer-team').onclick = openAdmin; $('#admin-close').onclick = closeAdmin;
 modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdmin(); });
-$('#admin-login').addEventListener('submit', async e => {
-  e.preventDefault(); if (!supabase) return;
-  const button = $('#admin-login button[type="submit"]');
+let pendingTeamEmail = '';
+async function sendTeamCode() {
+  if (!supabase) return;
   const email = $('#admin-email').value.trim().toLowerCase();
-  if (!email) return;
-  button.disabled = true; button.textContent = 'Sending secure link…';
-  $('#admin-message').textContent = 'Requesting one sign-in email. Once signed in, your session will stay active on this device.';
+  if (!email) { $('#admin-message').textContent = 'Enter your authorised team email first.'; return; }
+  const button = $('#admin-login button[type="submit"]');
+  button.disabled = true; button.textContent = 'Sending code…';
+  $('#admin-message').textContent = 'Sending a secure one-time code to your team email.';
   try {
-    const result = await supabase.auth.signInWithOtp({ email: email, options: { emailRedirectTo: IDEALAB_URL, shouldCreateUser: false } });
+    const result = await supabase.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false, emailRedirectTo: IDEALAB_URL } });
     if (result.error) {
+      const msg = result.error.message || '';
       $('#admin-message').textContent = result.error.status === 429
-        ? 'Supabase email delivery is temporarily rate-limited. You do not need a new link while your session is active. Configure custom SMTP for better delivery.'
-        : (result.error.message || 'Could not send the sign-in email.');
-      button.disabled = false; button.textContent = 'Send secure sign-in link ↗'; return;
+        ? 'Email sending is temporarily rate-limited. Wait before requesting another code, or use an existing signed-in session.'
+        : (/signups not allowed/i.test(msg)
+          ? 'This team email has not been added to Supabase Auth yet. An admin must invite/create this account first; public signups remain disabled.'
+          : msg);
+      button.disabled = false; button.textContent = 'Email me a sign-in code ↗'; return;
     }
-    $('#admin-message').textContent = 'If this is an authorised admin account, the link has been sent. Open the newest email. You should not need to repeat this on this device unless you sign out or your session expires.';
-    button.disabled = false; button.textContent = 'Send another link if needed ↗';
+    pendingTeamEmail = email;
+    $('#team-code-panel').hidden = false;
+    $('#admin-message').textContent = 'Code sent if this address is an existing authorised account. Enter the 6-digit code from your email.';
+    button.disabled = false; button.textContent = 'Send another code';
+    $('#admin-code').focus();
   } catch (err) {
-    button.disabled = false; button.textContent = 'Send secure sign-in link ↗';
-    $('#admin-message').textContent = 'Network error. Please try again later.';
+    button.disabled = false; button.textContent = 'Email me a sign-in code ↗';
+    $('#admin-message').textContent = 'Network error. Please try again.';
   }
+}
+$('#admin-login').addEventListener('submit', async e => { e.preventDefault(); await sendTeamCode(); });
+$('#resend-team-code').addEventListener('click', sendTeamCode);
+$('#verify-team-code').addEventListener('click', async () => {
+  const token = $('#admin-code').value.trim();
+  if (!pendingTeamEmail || token.length !== 6 || !Array.from(token).every(ch => ch >= '0' && ch <= '9')) {
+    $('#admin-message').textContent = 'Enter the 6-digit code from your email.'; return;
+  }
+  const button = $('#verify-team-code'); button.disabled = true; button.textContent = 'Verifying…';
+  const result = await supabase.auth.verifyOtp({ email: pendingTeamEmail, token: token, type: 'email' });
+  button.disabled = false; button.textContent = 'Verify code and open inbox';
+  if (result.error) { $('#admin-message').textContent = result.error.message || 'That code is invalid or expired. Request a new one.'; return; }
+  $('#admin-code').value = '';
+  $('#admin-message').textContent = 'Code verified. Checking team access…';
+  await checkAdmin();
 });
 async function checkAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
