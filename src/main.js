@@ -4,7 +4,7 @@ import './style.css';
 const env = import.meta.env;
 const IDEALAB_URL = 'https://ninajablade21-design.github.io/travbud-idealab/';
 const supabase = env.VITE_SUPABASE_URL && env.VITE_SUPABASE_PUBLISHABLE_KEY
-  ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_PUBLISHABLE_KEY)
+  ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_PUBLISHABLE_KEY, { auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true } })
   : null;
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -50,6 +50,22 @@ $('#app').innerHTML = `
         <article class="focus-card"><span class="focus-num">04</span><div class="focus-icon">⌘</div><h3>Better group travel</h3><p>How could coordinating people, preferences, budgets and plans become simpler?</p><span class="focus-tag">GROUP TRAVEL</span></article>
         <article class="focus-card"><span class="focus-num">05</span><div class="focus-icon">₹</div><h3>Clear costs & confidence</h3><p>What would make prices, payments, safety and travel decisions more transparent?</p><span class="focus-tag">PRICING & TRUST</span></article>
         <article class="focus-card idea-card"><span class="focus-num">06</span><div class="focus-icon">✳</div><h3>Your idea, your angle</h3><p>Something else entirely? Tell us what TravBud should consider that we haven't thought of yet.</p><span class="focus-tag">OPEN INNOVATION</span></article>
+      </div>
+    </div>
+  </section>
+  <section id="films" class="films-section">
+    <div class="section-shell">
+      <p class="eyebrow">02 / SEE THE VISION</p>
+      <div class="films-heading"><h2>Ideas become<br><em>real journeys.</em></h2><p>Explore the TravBud vision and the door-to-door planning experience we're working towards.</p></div>
+      <div class="films-grid">
+        <article class="film-card film-feature">
+          <div class="film-frame"><video controls playsinline preload="metadata" poster="" aria-label="TravBud product overview"><source src="/travbud-ad-silent.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
+          <div class="film-meta"><span>01 / PRODUCT OVERVIEW</span><h3>Meet TravBud</h3><p>A look at the connected travel experience we're imagining.</p></div>
+        </article>
+        <article class="film-card">
+          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud door-to-door travel planning"><source src="/viraldub-travbud-plan-door-to-door.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
+          <div class="film-meta"><span>02 / DOOR-TO-DOOR PLANNING</span><h3>One journey, connected</h3><p>See the idea behind live fares and a more complete travel plan.</p></div>
+        </article>
       </div>
     </div>
   </section>
@@ -173,6 +189,8 @@ async function loadAdminIdeas() {
 }
 $('#admin-logout').onclick = async () => { await supabase.auth.signOut(); $('#admin-dashboard').hidden = true; $('#admin-message').textContent = 'You have signed out.'; };
 if (supabase) {
+  // Keep authorised admins signed in across visits; only request a new link after sign-out or session expiry.
+  // Supabase JS defaults to persistent local sessions; PKCE makes the email callback safer.
   // Supabase consumes valid OTP links from the URL. Explain expired links clearly
   // and remove their one-time error parameters so refreshes do not keep showing them.
   const authParams = new URLSearchParams(location.hash.replace(/^#/, ''));
@@ -187,8 +205,23 @@ if (supabase) {
       : 'Sign-in could not be completed. Please request a fresh secure link.';
     history.replaceState({}, document.title, IDEALAB_URL);
   }
-  supabase.auth.onAuthStateChange((_event, session) => {
-    if (session?.user) checkAdmin();
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) setTimeout(checkAdmin, 0);
   });
   supabase.auth.getSession().then(({ data }) => { if (data.session) checkAdmin(); });
 }
+
+
+// Subtle scroll reveals and section navigation motion.
+const revealTargets = document.querySelectorAll('.hero-copy,.hero-art,.ticker,.intro,.focus-card,.films-heading,.film-card,.process,.step,.submit-intro,.idea-form,.closing');
+revealTargets.forEach((el, index) => { el.classList.add('reveal'); el.style.setProperty('--reveal-delay', (index % 4) * 75 + 'ms'); });
+if ('IntersectionObserver' in window) {
+  const revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+    if (entry.isIntersecting) { entry.target.classList.add('is-visible'); revealObserver.unobserve(entry.target); }
+  }), { threshold: 0.12, rootMargin: '0px 0px -35px 0px' });
+  revealTargets.forEach(el => revealObserver.observe(el));
+} else revealTargets.forEach(el => el.classList.add('is-visible'));
+document.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener('click', () => {
+  document.body.classList.add('is-navigating');
+  window.setTimeout(() => document.body.classList.remove('is-navigating'), 650);
+}));
