@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import './style.css';
 
 const env = import.meta.env;
+const IDEALAB_URL = 'https://ninajablade21-design.github.io/travbud-idealab/';
 const supabase = env.VITE_SUPABASE_URL && env.VITE_SUPABASE_PUBLISHABLE_KEY
   ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_PUBLISHABLE_KEY)
   : null;
@@ -37,7 +38,7 @@ $('#app').innerHTML = `
   </section>
   <div class="ticker"><span>REAL TRAVEL PROBLEMS</span><b>✳</b><span>USEFUL IDEAS</span><b>✳</b><span>ACCESS FOR EVERYONE</span><b>✳</b><span>BETTER JOURNEYS</span><b>✳</b><span>REAL TRAVEL PROBLEMS</span></div>
   <section id="why" class="intro section-shell">
-    <div><p class="eyebrow">01 / WHY IDEALAB EXISTS</p><h2>Not a review page.<br>A place to <em>shape what's next.</em></h2></div>
+    <div><p class="eyebrow">01 / WHY IDEALAB EXISTS</p><h2>A private place to<br><em>shape what's next.</em></h2></div>
     <div class="intro-copy"><p>TravBud is still being shaped. Before we build more, we want to understand the real-world challenges people face when planning, booking and taking trips.</p><p>IdeaLab is a private channel between travellers and the people building TravBud. Share the small frustrations, big barriers and ambitious ideas. Our team will read every submission and use the patterns to guide what we build.</p><div class="principle"><span>01</span> Listen before we build <span>02</span> Design for real people</div></div>
   </section>
   <section id="focus" class="focus-section">
@@ -113,8 +114,8 @@ modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdmin(); });
 $('#admin-login').addEventListener('submit', async e => {
   e.preventDefault(); if (!supabase) return;
-  const { error } = await supabase.auth.signInWithOtp({ email: $('#admin-email').value.trim(), options: { emailRedirectTo: location.origin + location.pathname } });
-  $('#admin-message').textContent = error ? error.message : 'Check your email for a secure sign-in link.';
+  const { error } = await supabase.auth.signInWithOtp({ email: $('#admin-email').value.trim(), options: { emailRedirectTo: IDEALAB_URL } });
+  $('#admin-message').textContent = error ? error.message : 'Secure sign-in link sent. Open the newest email on this device; older links expire when a newer one is requested.';
 });
 async function checkAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -152,4 +153,23 @@ async function loadAdminIdeas() {
   }));
 }
 $('#admin-logout').onclick = async () => { await supabase.auth.signOut(); $('#admin-dashboard').hidden = true; $('#admin-message').textContent = 'You have signed out.'; };
-if (supabase) supabase.auth.getSession().then(({ data }) => { if (data.session) checkAdmin(); });
+if (supabase) {
+  // Supabase consumes valid OTP links from the URL. Explain expired links clearly
+  // and remove their one-time error parameters so refreshes do not keep showing them.
+  const authParams = new URLSearchParams(location.hash.replace(/^#/, ''));
+  const queryParams = new URLSearchParams(location.search);
+  const authError = authParams.get('error_description') || queryParams.get('error_description');
+  const authErrorCode = authParams.get('error_code') || queryParams.get('error_code');
+  if (authErrorCode === 'otp_expired' || authError) {
+    $('#admin-modal').classList.add('open');
+    $('#admin-modal').setAttribute('aria-hidden', 'false');
+    $('#admin-message').textContent = authErrorCode === 'otp_expired'
+      ? 'That sign-in link has expired or was already used. Enter your admin email and request a fresh link.'
+      : 'Sign-in could not be completed. Please request a fresh secure link.';
+    history.replaceState({}, document.title, IDEALAB_URL);
+  }
+  supabase.auth.onAuthStateChange((_event, session) => {
+    if (session?.user) checkAdmin();
+  });
+  supabase.auth.getSession().then(({ data }) => { if (data.session) checkAdmin(); });
+}
