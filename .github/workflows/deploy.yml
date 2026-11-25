@@ -18,13 +18,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - run: npm install
       - name: Build
         run: npm run build
         env:
           VITE_BASE_PATH: /travbud-idealab/
-          VITE_SUPABASE_URL: https://rsnmwoxawgmpebiusuqr.supabase.co
-          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_BHDoxPD_pAnYAKD5t7QCTg_swTH27k-
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
