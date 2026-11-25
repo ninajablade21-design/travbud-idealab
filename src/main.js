@@ -59,11 +59,11 @@ $('#app').innerHTML = `
       <div class="films-heading"><h2>Ideas become<br><em>real journeys.</em></h2><p>Watch the TravBud journey concept and the campaign film. Both videos are served from the site's own assets.</p></div>
       <div class="films-grid">
         <article class="film-card film-feature">
-          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud door-to-door planning video"><source src="${import.meta.env.BASE_URL}videos/viraldub-travbud-plan-door-to-door.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
+          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud door-to-door planning video" data-video-src="${import.meta.env.BASE_URL}videos/viraldub-travbud-plan-door-to-door.mp4">Your browser does not support HTML video.</video></div>
           <div class="film-meta"><span>01 / DOOR-TO-DOOR PLANNING</span><h3>Plan the whole journey</h3><p>Explore the TravBud idea for connected door-to-door travel planning.</p></div>
         </article>
         <article class="film-card">
-          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud campaign film with music"><source src="${import.meta.env.BASE_URL}videos/travbud-ad-with-music.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
+          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud campaign film with music" data-video-src="${import.meta.env.BASE_URL}videos/travbud-ad-with-music.mp4">Your browser does not support HTML video.</video></div>
           <div class="film-meta"><span>02 / CAMPAIGN FILM</span><h3>TravBud in motion</h3><p>The TravBud campaign film, with its original music.</p></div>
         </article>
       </div>
@@ -129,32 +129,62 @@ $('#admin-open').onclick = openAdmin; $('#footer-team').onclick = openAdmin; $('
 modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdmin(); });
 let pendingTeamEmail = '';
+const OTP_COOLDOWN_STORAGE = 'travbud-idealab-otp-next-request';
+let otpCooldownInterval = null;
+function setOtpCooldown(seconds, message) {
+  const until = Date.now() + seconds * 1000;
+  try { localStorage.setItem(OTP_COOLDOWN_STORAGE, String(until)); } catch {}
+  const button = $('#admin-login button[type="submit"]');
+  clearInterval(otpCooldownInterval);
+  const update = () => {
+    const remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+    button.disabled = remaining > 0;
+    button.textContent = remaining ? 'Please wait ' + remaining + 's' : 'Send a new secure code';
+    if (!remaining) clearInterval(otpCooldownInterval);
+  };
+  $('#admin-message').textContent = message;
+  update();
+  otpCooldownInterval = setInterval(update, 1000);
+}
+function restoreOtpCooldown() {
+  try {
+    const until = Number(localStorage.getItem(OTP_COOLDOWN_STORAGE) || 0);
+    const remaining = Math.ceil((until - Date.now()) / 1000);
+    if (remaining > 0) setOtpCooldown(remaining, 'A recent sign-in email was requested. Please wait before requesting another.');
+  } catch {}
+}
+restoreOtpCooldown();
 async function sendTeamCode() {
   if (!supabase) return;
   const email = $('#admin-email').value.trim().toLowerCase();
-  if (!email) { $('#admin-message').textContent = 'Enter your authorised team email first.'; return; }
+  if (!email) { $('#admin-message').textContent = 'Enter your authorised team email address.'; return; }
   const button = $('#admin-login button[type="submit"]');
-  button.disabled = true; button.textContent = 'Sending code…';
-  $('#admin-message').textContent = 'Sending a secure one-time code to your team email.';
+  if (button.disabled) return;
+  button.disabled = true; button.textContent = 'Sending secure code…';
+  $('#admin-message').textContent = 'Sending a private sign-in code. This can take a few moments.';
   try {
-    const result = await supabase.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false, emailRedirectTo: IDEALAB_URL } });
+    const result = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false, emailRedirectTo: IDEALAB_URL }
+    });
     if (result.error) {
-      const msg = result.error.message || '';
-      $('#admin-message').textContent = result.error.status === 429
-        ? 'Email sending is temporarily rate-limited. Wait before requesting another code, or use an existing signed-in session.'
-        : (/signups not allowed/i.test(msg)
-          ? 'This team email has not been added to Supabase Auth yet. An admin must invite/create this account first; public signups remain disabled.'
-          : msg);
-      button.disabled = false; button.textContent = 'Email me a sign-in code ↗'; return;
+      if (result.error.status === 429 || /rate.?limit|too many requests/i.test(result.error.message || '')) {
+        setOtpCooldown(600, 'Email delivery is temporarily limited by Supabase. Please wait 10 minutes and try once. The project needs custom SMTP for reliable team sign-in.');
+      } else {
+        button.disabled = false; button.textContent = 'Send a new secure code';
+        $('#admin-message').textContent = /signups not allowed/i.test(result.error.message || '')
+          ? 'This email is not registered in IdeaLab yet. An administrator must create the team account first.'
+          : (result.error.message || 'We could not send your sign-in code.');
+      }
+      return;
     }
     pendingTeamEmail = email;
     $('#team-code-panel').hidden = false;
-    $('#admin-message').textContent = 'Code sent if this address is an existing authorised account. Enter the 6-digit code from your email.';
-    button.disabled = false; button.textContent = 'Send another code';
+    setOtpCooldown(60, 'Check your inbox for the six-digit IdeaLab sign-in code. If it is not there, check Spam. Use the newest code only.');
     $('#admin-code').focus();
   } catch (err) {
-    button.disabled = false; button.textContent = 'Email me a sign-in code ↗';
-    $('#admin-message').textContent = 'Network error. Please try again.';
+    button.disabled = false; button.textContent = 'Send a new secure code';
+    $('#admin-message').textContent = 'Connection problem. Please try again when your internet connection is stable.';
   }
 }
 $('#admin-login').addEventListener('submit', async e => { e.preventDefault(); await sendTeamCode(); });
@@ -162,15 +192,21 @@ $('#resend-team-code').addEventListener('click', sendTeamCode);
 $('#verify-team-code').addEventListener('click', async () => {
   const token = $('#admin-code').value.trim();
   if (!pendingTeamEmail || token.length !== 6 || !Array.from(token).every(ch => ch >= '0' && ch <= '9')) {
-    $('#admin-message').textContent = 'Enter the 6-digit code from your email.'; return;
+    $('#admin-message').textContent = 'Enter the six-digit code from your email.'; return;
   }
-  const button = $('#verify-team-code'); button.disabled = true; button.textContent = 'Verifying…';
-  const result = await supabase.auth.verifyOtp({ email: pendingTeamEmail, token: token, type: 'email' });
-  button.disabled = false; button.textContent = 'Verify code and open inbox';
-  if (result.error) { $('#admin-message').textContent = result.error.message || 'That code is invalid or expired. Request a new one.'; return; }
-  $('#admin-code').value = '';
-  $('#admin-message').textContent = 'Code verified. Checking team access…';
-  await checkAdmin();
+  const button = $('#verify-team-code'); button.disabled = true; button.textContent = 'Verifying securely…';
+  try {
+    const result = await supabase.auth.verifyOtp({ email: pendingTeamEmail, token, type: 'email' });
+    button.disabled = false; button.textContent = 'Verify code and open private inbox';
+    if (result.error) { $('#admin-message').textContent = 'That code is invalid or has expired. Request a new code after the resend timer ends.'; return; }
+    try { localStorage.removeItem(OTP_COOLDOWN_STORAGE); } catch {}
+    $('#admin-code').value = '';
+    $('#admin-message').textContent = 'Email verified. Confirming your team access…';
+    await checkAdmin();
+  } catch (err) {
+    button.disabled = false; button.textContent = 'Verify code and open private inbox';
+    $('#admin-message').textContent = 'We could not verify the code. Please try again.';
+  }
 });
 async function checkAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -245,3 +281,22 @@ document.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener(
   document.body.classList.add('is-navigating');
   window.setTimeout(() => document.body.classList.remove('is-navigating'), 650);
 }));
+
+document.querySelectorAll('video[data-video-src]').forEach(async video => {
+  const url = video.dataset.videoSrc;
+  const frame = video.closest('.film-frame');
+  try {
+    const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+    if (!response.ok) {
+      frame.classList.add('video-unavailable');
+      frame.innerHTML = '<div class="video-placeholder"><span>VIDEO ASSET NOT UPLOADED</span><strong>This film will appear here once its MP4 is added to the site.</strong><small>Expected file: ' + url.split('/').pop().replace(/%20/g, ' ') + '</small></div>';
+      return;
+    }
+    const source = document.createElement('source');
+    source.src = url; source.type = 'video/mp4';
+    video.appendChild(source); video.load();
+  } catch {
+    frame.classList.add('video-unavailable');
+    frame.innerHTML = '<div class="video-placeholder"><span>VIDEO TEMPORARILY UNAVAILABLE</span><strong>We could not verify this film right now.</strong><small>Please refresh the page in a moment.</small></div>';
+  }
+});
