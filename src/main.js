@@ -1,11 +1,37 @@
-import { createClient } from '@supabase/supabase-js';
+import { Client, Account, ID, Functions } from 'appwrite';
 import './style.css';
 
 const env = import.meta.env;
 const IDEALAB_URL = 'https://ninajablade21-design.github.io/travbud-idealab/';
-const supabase = env.VITE_SUPABASE_URL && env.VITE_SUPABASE_PUBLISHABLE_KEY
-  ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_PUBLISHABLE_KEY, { auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true } })
-  : null;
+const APPWRITE_ENDPOINT = env.VITE_APPWRITE_ENDPOINT || 'https://sgp.cloud.appwrite.io/v1';
+const APPWRITE_PROJECT_ID = env.VITE_APPWRITE_PROJECT_ID || '6b072d6700272e0ab5fd';
+const APPWRITE_FUNCTION_ID = env.VITE_APPWRITE_FUNCTION_ID || 'idealab-api';
+const appwriteClient = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
+const account = new Account(appwriteClient);
+const functions = new Functions(appwriteClient);
+const ADMIN_EMAILS = ['ninajablade21@gmail.com','ashaharikrishna2019@gmail.com'];
+let currentUser = null;
+let pendingOtpUserId = '';
+async function runApi(action, method = 'POST', payload = {}, needsAdmin = false) {
+  const headers = {};
+  if (needsAdmin) {
+    if (!currentUser) throw new Error('Please sign in again.');
+    const jwt = await account.createJWT();
+    headers['x-appwrite-user-jwt'] = jwt.jwt;
+  }
+  const execution = await functions.createExecution({
+    functionId: APPWRITE_FUNCTION_ID,
+    body: method === 'GET' ? '' : JSON.stringify({ action, ...payload }),
+    async: false,
+    path: method === 'GET' ? '/?action=' + encodeURIComponent(action) : '/',
+    method,
+    headers
+  });
+  let result = {};
+  try { result = JSON.parse(execution.responseBody || '{}'); } catch {}
+  if (execution.statusCode >= 400 || result.ok === false) throw new Error(result.message || 'The secure service could not complete this request.');
+  return result;
+}
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const categories = [
@@ -21,7 +47,6 @@ const problemList = ['Finding reliable routes','Unclear schedules / delays','Boo
 const improvementList = ['One place for all transport','Live tracking and alerts','Accurate journey planner','Transparent price comparison','Accessibility-first planning','Group trip planning','Offline travel assistant','Safer travel tools','AI travel assistant','First / last-mile rides','Easy booking and tickets','Cargo / luggage support'];
 const opts = (list, ph) => `<option value="">${ph}</option>` + list.map(v => `<option>${v}</option>`).join('');
 const chips = (name, list) => `<div class="chips">${list.map(v => `<label class="chip"><input type="checkbox" name="${name}" value="${v}"><span>${v}</span></label>`).join('')}</div>`;
-
 $('#app').innerHTML = `
 <header class="site-header">
   <a class="brand" href="#top" aria-label="TravBud IdeaLab home"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a>
@@ -124,15 +149,14 @@ $('#app').innerHTML = `
   <section class="closing section-shell"><p class="eyebrow">TRAVBUD IDEALAB</p><h2>Better journeys don't<br>happen by <em>accident.</em></h2><p>They happen when we listen to the people taking them.</p><a href="#submit" class="text-link">Add your voice <span>↗</span></a></section>
 </main>
 <footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><button id="footer-team" class="footer-team">Private team access ↗</button></footer>
-<div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Use your authorised team account. Password sign-in works without sending an email; secure email links are available as a backup.</p><div class="team-auth-tabs" role="tablist" aria-label="Team sign-in method"><button type="button" class="team-auth-tab active" id="tab-password" role="tab" aria-selected="true" aria-controls="password-login">Password</button><button type="button" class="team-auth-tab" id="tab-link" role="tab" aria-selected="false" aria-controls="link-login">Email link</button></div><form id="password-login" class="team-auth-form"><label for="password-email">Work email address</label><input id="password-email" type="email" required autocomplete="username" placeholder="name@company.com"><label for="team-password">Password</label><input id="team-password" type="password" required autocomplete="current-password" placeholder="Your team password"><button class="primary" type="submit">Sign in to private inbox <span aria-hidden="true">↗</span></button></form><form id="link-login" class="team-auth-form" hidden><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><button class="primary" type="submit">Email me a secure sign-in link <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-insights" class="admin-insights"></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
+<div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Use your authorised team account. Password sign-in works without sending an email; secure email links are available as a backup.</p><div class="team-auth-tabs" role="tablist" aria-label="Team sign-in method"><button type="button" class="team-auth-tab active" id="tab-password" role="tab" aria-selected="true" aria-controls="password-login">Password</button><button type="button" class="team-auth-tab" id="tab-link" role="tab" aria-selected="false" aria-controls="link-login">Email code</button></div><form id="password-login" class="team-auth-form"><label for="password-email">Work email address</label><input id="password-email" type="email" required autocomplete="username" placeholder="name@company.com"><label for="team-password">Password</label><input id="team-password" type="password" required autocomplete="current-password" placeholder="Your team password"><button class="primary" type="submit">Sign in to private inbox <span aria-hidden="true">↗</span></button></form><form id="link-login" class="team-auth-form" hidden><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><input id="otp-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="Six-digit code" hidden><button class="primary" type="submit">Email me a six-digit code <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-insights" class="admin-insights"></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 
 const form = $('#idea-form');
 $('#idea-details').addEventListener('input', e => $('#char-count').textContent = e.target.value.length + ' / 5000');
 form.addEventListener('submit', async e => {
   e.preventDefault();
-  const feedback = $('#form-feedback');
-  if (!supabase) { feedback.textContent = 'The secure submission service is not connected yet. Please try again later.'; return; }
+  const feedback = $('#form-feedback'), button = form.querySelector('button[type="submit"]');
   const data = new FormData(form);
   const name = String(data.get('submitter_name') || '').trim();
   const title = String(data.get('title') || '').trim();
@@ -140,30 +164,18 @@ form.addEventListener('submit', async e => {
   if (name.length < 2 || title.length < 4 || details.length < 10) { feedback.textContent = 'Please complete the required fields before sending.'; return; }
   const consent = $('#consent-device').checked;
   const deviceContext = consent ? { user_agent: navigator.userAgent.slice(0, 300), language: navigator.language || null, screen: { width: screen.width, height: screen.height }, viewport: { width: innerWidth, height: innerHeight } } : {};
-  const payload = { submitter_name: name, category: data.get('category'), title, details, email: String(data.get('email') || '').trim() || null, consent_device_data: consent, device_context: deviceContext, status: 'new' };
-  const button = form.querySelector('button[type="submit"]');
+  const payload = { submitter_name: name, category: data.get('category'), title, details, email: String(data.get('email') || '').trim() || null, consent_device_data: consent, device_context: deviceContext };
   button.disabled = true; button.textContent = 'Sending securely…'; feedback.textContent = '';
-  const { error } = await supabase.from('idea_submissions').insert(payload);
-  let submitError = error;
-  if (submitError && /column|schema cache|PGRST204/i.test(`${submitError.code || ''} ${submitError.message || ''}`)) {
-    const retry = await supabase.from('idea_submissions').insert({
-      submitter_name: payload.submitter_name,
-      category: payload.category,
-      title: payload.title,
-      details: payload.details,
-      email: payload.email,
-      consent_device_data: payload.consent_device_data,
-      device_context: payload.device_context,
-      status: payload.status
-    });
-    submitError = retry.error;
-  }
-  button.disabled = false; button.innerHTML = 'Send my idea <span>↗</span>';
-  if (submitError) { console.error('IdeaLab submission failed:', submitError); feedback.textContent = 'We could not save your idea just now. Please try again in a moment.'; return; }
-  form.reset(); $('#char-count').textContent = '0 / 5000';
-  feedback.textContent = 'Thank you. Your idea has been sent privately to the TravBud team.';
-  $('#toast').textContent = 'Your idea is safely in the IdeaLab inbox.'; $('#toast').classList.add('show');
-  window.setTimeout(() => $('#toast').classList.remove('show'), 4500);
+  try {
+    await runApi('idea','POST',payload);
+    form.reset(); $('#char-count').textContent = '0 / 5000';
+    feedback.textContent = 'Thank you. Your idea has been sent privately to the TravBud team.';
+    $('#toast').textContent = 'Your idea is safely in the IdeaLab inbox.'; $('#toast').classList.add('show');
+    window.setTimeout(() => $('#toast').classList.remove('show'), 4500);
+  } catch (error) {
+    console.error('IdeaLab submission failed:', error);
+    feedback.textContent = error.message || 'We could not save your idea just now. Please try again.';
+  } finally { button.disabled = false; button.innerHTML = 'Send my idea <span>↗</span>'; }
 });
 
 document.querySelectorAll('[data-access]').forEach(control => control.addEventListener('change', () => document.documentElement.classList.toggle('access-' + control.dataset.access, control.checked)));
@@ -172,36 +184,25 @@ const modal = $('#admin-modal');
 let adminReturnFocus = null;
 function openAdmin(event) {
   if (event?.currentTarget instanceof HTMLElement) adminReturnFocus = event.currentTarget;
-  modal.inert = false;
-  modal.setAttribute('aria-hidden', 'false');
-  modal.classList.add('open');
-  $('#admin-close').focus();
-  if (supabase) checkAdmin();
-  else $('#admin-message').textContent = 'Admin service is not connected.';
+  modal.inert = false; modal.setAttribute('aria-hidden','false'); modal.classList.add('open'); $('#admin-close').focus();
+  checkAdmin().catch(() => { $('#admin-message').textContent = 'Sign in to access the private team inbox.'; });
 }
 function closeAdmin() {
   if (!modal.classList.contains('open')) return;
   const returnTarget = adminReturnFocus?.isConnected ? adminReturnFocus : $('#admin-open');
   if (modal.contains(document.activeElement)) returnTarget?.focus();
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden', 'true');
-  modal.inert = true;
+  modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); modal.inert = true;
 }
 $('#admin-open').onclick = openAdmin;
 $('#footer-team').onclick = openAdmin;
 $('#admin-close').onclick = closeAdmin;
 modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && modal.classList.contains('open')) closeAdmin();
-});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('open')) closeAdmin(); });
 function showTeamAuthTab(tab) {
   const password = tab === 'password';
-  $('#password-login').hidden = !password;
-  $('#link-login').hidden = password;
-  $('#tab-password').classList.toggle('active', password);
-  $('#tab-link').classList.toggle('active', !password);
-  $('#tab-password').setAttribute('aria-selected', String(password));
-  $('#tab-link').setAttribute('aria-selected', String(!password));
+  $('#password-login').hidden = !password; $('#link-login').hidden = password;
+  $('#tab-password').classList.toggle('active',password); $('#tab-link').classList.toggle('active',!password);
+  $('#tab-password').setAttribute('aria-selected',String(password)); $('#tab-link').setAttribute('aria-selected',String(!password));
   $('#admin-message').textContent = '';
 }
 $('#tab-password').addEventListener('click', () => showTeamAuthTab('password'));
@@ -209,141 +210,86 @@ $('#tab-link').addEventListener('click', () => showTeamAuthTab('link'));
 
 $('#password-login').addEventListener('submit', async e => {
   e.preventDefault();
-  if (!supabase) return;
-  const email = $('#password-email').value.trim().toLowerCase();
-  const password = $('#team-password').value;
-  const button = $('#password-login button[type="submit"]');
-  button.disabled = true; button.textContent = 'Signing in securely…';
-  $('#admin-message').textContent = 'Checking your team account…';
+  const email=$('#password-email').value.trim().toLowerCase(), password=$('#team-password').value;
+  const button=$('#password-login button[type="submit"]');
+  if(!ADMIN_EMAILS.includes(email)){ $('#admin-message').textContent='This email is not on the IdeaLab admin list.'; return; }
+  button.disabled=true; button.textContent='Signing in securely…'; $('#admin-message').textContent='Checking your team account…';
   try {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    button.disabled = false; button.textContent = 'Sign in to private inbox ↗';
-    if (error) {
-      $('#admin-message').textContent = /invalid login credentials/i.test(error.message || '')
-        ? 'Email or password is incorrect. Check your details, or use the Email link tab if you need passwordless access.'
-        : (error.message || 'Sign-in failed. Please try again.');
-      return;
-    }
-    $('#team-password').value = '';
-    $('#admin-message').textContent = 'Signed in. Checking private team access…';
+    await account.createEmailPasswordSession({email,password});
+    $('#team-password').value=''; currentUser=await account.get();
     await checkAdmin();
-  } catch (error) {
-    button.disabled = false; button.textContent = 'Sign in to private inbox ↗';
-    $('#admin-message').textContent = 'Connection issue. Check your internet and try again.';
-  }
+  } catch(error) { $('#admin-message').textContent='Sign-in failed. Check the email and password, or use the six-digit email code.'; }
+  finally { button.disabled=false; button.textContent='Sign in to private inbox ↗'; }
 });
 
-const OTP_COOLDOWN_STORAGE = 'travbud-idealab-otp-next-request';
-let otpCooldownInterval = null;
-function setOtpCooldown(seconds, message) {
-  const until = Date.now() + seconds * 1000;
-  try { localStorage.setItem(OTP_COOLDOWN_STORAGE, String(until)); } catch {}
-  const button = $('#link-login button[type="submit"]');
-  clearInterval(otpCooldownInterval);
-  const update = () => {
-    const remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
-    button.disabled = remaining > 0;
-    button.textContent = remaining ? 'Try again in ' + remaining + 's' : 'Email me a secure sign-in link ↗';
-    if (!remaining) clearInterval(otpCooldownInterval);
-  };
-  $('#admin-message').textContent = message;
-  update();
-}
-try {
-  const until = Number(localStorage.getItem(OTP_COOLDOWN_STORAGE) || 0);
-  const remaining = Math.ceil((until - Date.now()) / 1000);
-  if (remaining > 0) setOtpCooldown(remaining, 'A sign-in email was recently requested. Please wait before requesting another.');
-} catch {}
 $('#link-login').addEventListener('submit', async e => {
   e.preventDefault();
-  if (!supabase) return;
-  const email = $('#admin-email').value.trim().toLowerCase();
-  const button = $('#link-login button[type="submit"]');
-  if (!email || button.disabled) return;
-  button.disabled = true; button.textContent = 'Sending secure link…';
-  $('#admin-message').textContent = 'Preparing your private IdeaLab sign-in email…';
+  const button=$('#link-login button[type="submit"]');
+  const email=$('#admin-email').value.trim().toLowerCase();
+  if(!ADMIN_EMAILS.includes(email)){ $('#admin-message').textContent='This email is not on the IdeaLab admin list.'; return; }
+  button.disabled=true; button.textContent=pendingOtpUserId?'Verifying code…':'Sending six-digit code…';
   try {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false, emailRedirectTo: IDEALAB_URL }
-    });
-    if (error) {
-      if (error.status === 429 || /rate.?limit|too many requests/i.test(error.message || '')) {
-        setOtpCooldown(600, 'Email sending is temporarily limited by Supabase. Use Password sign-in instead, or wait before requesting another link. Custom SMTP is needed for reliable email delivery.');
-      } else {
-        button.disabled = false; button.textContent = 'Email me a secure sign-in link ↗';
-        $('#admin-message').textContent = /signups not allowed/i.test(error.message || '')
-          ? 'This address is not registered as a team account. An administrator must create it first.'
-          : (error.message || 'We could not send your sign-in link.');
-      }
-      return;
+    if(!pendingOtpUserId){
+      const token=await account.createEmailToken({userId:ID.unique(),email});
+      pendingOtpUserId=token.userId;
+      $('#otp-code').hidden=false;
+      $('#otp-code').focus();
+      button.textContent='Verify six-digit code';
+      $('#admin-message').textContent='A six-digit sign-in code has been sent. Enter the code from the email.';
+    } else {
+      const secret=$('#otp-code').value.trim();
+      if(!/^\d{6}$/.test(secret)) throw new Error('Enter the six-digit code from your email.');
+      await account.createSession({userId:pendingOtpUserId,secret});
+      pendingOtpUserId=''; $('#otp-code').value=''; $('#otp-code').hidden=true;
+      currentUser=await account.get(); await checkAdmin();
     }
-    setOtpCooldown(60, 'Check your inbox for your secure TravBud IdeaLab link. Open the newest email on this device.');
-  } catch (error) {
-    button.disabled = false; button.textContent = 'Email me a secure sign-in link ↗';
-    $('#admin-message').textContent = 'Connection issue. Check your internet and try again.';
-  }
+  } catch(error) { $('#admin-message').textContent=error.message||'Could not complete email sign-in. Please try again.'; }
+  finally { button.disabled=false; if(!pendingOtpUserId) button.textContent='Email me a six-digit code ↗'; }
 });
+
 async function checkAdmin() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  const { data: allow, error } = await supabase.from('idealab_admins').select('user_id').eq('user_id', user.id).maybeSingle();
-  if (error || !allow) { $('#admin-message').textContent = 'This account is not authorised for the private IdeaLab inbox.'; return; }
-  $('#admin-dashboard').hidden = false; $('#admin-message').textContent = 'Signed in as ' + user.email;
+  try { currentUser=await account.get(); }
+  catch { currentUser=null; $('#admin-dashboard').hidden=true; return; }
+  const email=(currentUser.email||'').toLowerCase();
+  if(!ADMIN_EMAILS.includes(email)||!(currentUser.labels||[]).includes('idealabadmin')){
+    $('#admin-dashboard').hidden=true; $('#admin-message').textContent='This account is not authorised for the private IdeaLab inbox.'; return;
+  }
+  $('#admin-dashboard').hidden=false; $('#admin-message').textContent='Signed in as '+email;
   await loadAdminIdeas();
 }
+function normalizeRows(rows){return (rows||[]).map(r=>({id:r.$id,...(r.data||{}),created_at:r.created_at||r.data?.created_at||r.$createdAt}));}
 async function loadAdminIdeas() {
-  const rows = $('#admin-rows'); rows.innerHTML = '<p class="loading">Loading private submissions…</p>';
-  const { data, error } = await supabase.from('idea_submissions').select('*').order('created_at', { ascending: false }).limit(300);
-  if (error) { rows.textContent = 'Unable to load submissions: ' + error.message; return; }
-  const ideas = data || [];
-  adminExport.ideas = ideas; loadInsights();
-  const counts = ideas.reduce((a, x) => (a[x.status] = (a[x.status] || 0) + 1, a), {});
-  $('#admin-summary').innerHTML = [['Total', ideas.length],['New', counts.new || 0],['Reviewing', counts.reviewing || 0],['Planned', counts.planned || 0]].map(([k,v]) => `<div><small>${k}</small><strong>${v}</strong></div>`).join('');
-  rows.innerHTML = ideas.length ? ideas.map(r => `
-    <article class="admin-idea"><div class="admin-idea-top"><span class="category-tag">${esc(categories.find(c => c[0] === r.category)?.[1] || r.category)}</span><time>${new Date(r.created_at).toLocaleString()}</time></div>
-    <h3>${esc(r.title)}</h3><p>${esc(r.details)}</p><div class="admin-byline"><b>${esc(r.submitter_name || 'Name not recorded')}</b><span>${esc(r.email || 'No follow-up email')}</span></div>
-    <div class="admin-controls"><label>Status <select data-idea-status="${r.id}"><option value="new">New</option><option value="reviewing">Reviewing</option><option value="planned">Planned</option><option value="resolved">Resolved</option><option value="declined">Declined</option></select></label><button class="copy-idea" data-copy="${r.id}">Copy details</button></div></article>`).join('') : '<div class="empty-inbox">No ideas have been submitted yet.</div>';
-  rows.querySelectorAll('[data-idea-status]').forEach(select => {
-    const record = ideas.find(x => x.id === select.dataset.ideaStatus); select.value = record.status;
-    select.addEventListener('change', async () => {
-      select.disabled = true;
-      const { error: updateError } = await supabase.from('idea_submissions').update({ status: select.value }).eq('id', record.id);
-      select.disabled = false;
-      if (updateError) { $('#admin-message').textContent = 'Status update failed: ' + updateError.message; select.value = record.status; }
-      else { record.status = select.value; $('#admin-message').textContent = 'Submission status updated.'; }
+  const rows=$('#admin-rows'); rows.innerHTML='<p class="loading">Loading private submissions…</p>';
+  try {
+    const result=await runApi('ideas','GET',{},true), ideas=normalizeRows(result.rows);
+    adminExport.ideas=ideas; await loadInsights();
+    const counts=ideas.reduce((a,x)=>(a[x.status]=(a[x.status]||0)+1,a),{});
+    $('#admin-summary').innerHTML=[['Total',ideas.length],['New',counts.new||0],['Reviewing',counts.reviewing||0],['Planned',counts.planned||0]].map(([k,v])=>`<div><small>${k}</small><strong>${v}</strong></div>`).join('');
+    rows.innerHTML=ideas.length?ideas.map(r=>`
+      <article class="admin-idea"><div class="admin-idea-top"><span class="category-tag">${esc(categories.find(c=>c[0]===r.category)?.[1]||r.category)}</span><time>${new Date(r.created_at).toLocaleString()}</time></div>
+      <h3>${esc(r.title)}</h3><p>${esc(r.details)}</p><div class="admin-byline"><b>${esc(r.submitter_name||'Name not recorded')}</b><span>${esc(r.email||'No follow-up email')}</span></div>
+      <div class="admin-controls"><label>Status <select data-idea-status="${r.id}"><option value="new">New</option><option value="reviewing">Reviewing</option><option value="planned">Planned</option><option value="resolved">Resolved</option><option value="declined">Declined</option></select></label><button class="copy-idea" data-copy="${r.id}">Copy details</button></div></article>`).join(''):'<div class="empty-inbox">No ideas have been submitted yet.</div>';
+    rows.querySelectorAll('[data-idea-status]').forEach(select=>{
+      const record=ideas.find(x=>x.id===select.dataset.ideaStatus); select.value=record.status;
+      select.addEventListener('change',async()=>{
+        select.disabled=true;
+        try { await runApi('status','PATCH',{id:record.id,status:select.value},true); record.status=select.value; $('#admin-message').textContent='Submission status updated.'; }
+        catch(error){ $('#admin-message').textContent='Status update failed: '+error.message; select.value=record.status; }
+        finally{select.disabled=false;}
+      });
     });
-  });
-  rows.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', async () => {
-    const r = ideas.find(x => x.id === button.dataset.copy);
-    await navigator.clipboard.writeText(` ${r.title}\nBy: ${r.submitter_name}\nCategory: ${r.category}\n\n${r.details}`);
-    button.textContent = 'Copied';
-  }));
+    rows.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener('click',async()=>{
+      const r=ideas.find(x=>x.id===button.dataset.copy);
+      await navigator.clipboard.writeText(`${r.title}\nBy: ${r.submitter_name}\nCategory: ${r.category}\n\n${r.details}`);
+      button.textContent='Copied';
+    }));
+  } catch(error) { rows.textContent='Unable to load private submissions: '+error.message; }
 }
-$('#admin-logout').onclick = async () => { await supabase.auth.signOut(); $('#admin-dashboard').hidden = true; $('#admin-message').textContent = 'You have signed out.'; };
-if (supabase) {
-  // Keep authorised admins signed in across visits; only request a new link after sign-out or session expiry.
-  // Supabase JS defaults to persistent local sessions; PKCE makes the email callback safer.
-  // Supabase consumes valid OTP links from the URL. Explain expired links clearly
-  // and remove their one-time error parameters so refreshes do not keep showing them.
-  const authParams = new URLSearchParams(location.hash.replace(/^#/, ''));
-  const queryParams = new URLSearchParams(location.search);
-  const authError = authParams.get('error_description') || queryParams.get('error_description');
-  const authErrorCode = authParams.get('error_code') || queryParams.get('error_code');
-  if (authErrorCode === 'otp_expired' || authError) {
-    $('#admin-modal').classList.add('open');
-    $('#admin-modal').setAttribute('aria-hidden', 'false');
-    $('#admin-message').textContent = authErrorCode === 'otp_expired'
-      ? 'That sign-in link has expired or was already used. Enter your admin email and request a fresh link.'
-      : 'Sign-in could not be completed. Please request a fresh secure link.';
-    history.replaceState({}, document.title, IDEALAB_URL);
-  }
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' && session?.user) setTimeout(checkAdmin, 0);
-  });
-  supabase.auth.getSession().then(({ data }) => { if (data.session) checkAdmin(); });
-}
-
+$('#admin-logout').onclick=async()=>{
+  try{await account.deleteSession({sessionId:'current'});}catch{}
+  currentUser=null; $('#admin-dashboard').hidden=true; $('#admin-message').textContent='You have signed out.';
+};
+account.get().then(user=>{currentUser=user;return checkAdmin();}).catch(()=>{currentUser=null;});
 
 // Traveller survey submit (max 5 improvements enforced here and in the database).
 const checked = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(x => x.value);
@@ -352,18 +298,18 @@ $('#survey-form').addEventListener('change', e => {
 });
 $('#survey-form').addEventListener('submit', async e => {
   e.preventDefault();
-  const fb = $('#sv-feedback'), btn = e.target.querySelector('button[type="submit"]');
-  if (!supabase) { fb.textContent = 'The secure submission service is not connected yet. Please try again later.'; return; }
-  const v = (id) => $(id).value.trim() || null;
-  btn.disabled = true; fb.textContent = '';
-  const { error } = await supabase.from('survey_responses').insert({
-    travel_frequency: v('#sv-freq'), travel_purpose: v('#sv-purpose'), transport: checked('transport'), problems: checked('problems'),
-    problem_frequency: v('#sv-pfreq'), severity: v('#sv-sev'), story: v('#sv-story'), improvements: checked('improvements'),
-    missing: v('#sv-missing'), age_range: v('#sv-age'), region: v('#sv-region'), email: v('#sv-email'), consent: true
-  });
-  btn.disabled = false;
-  if (error) { console.error('Survey failed:', error); fb.textContent = 'We could not save your survey just now. Please try again in a moment.'; return; }
-  e.target.reset(); fb.textContent = 'Thank you. Your survey has been sent privately to the TravBud team.';
+  const fb=$('#sv-feedback'),btn=e.target.querySelector('button[type="submit"]');
+  const v=id=>$(id).value.trim()||null;
+  btn.disabled=true; fb.textContent='';
+  try {
+    await runApi('survey','POST',{
+      travel_frequency:v('#sv-freq'),travel_purpose:v('#sv-purpose'),transport:checked('transport'),problems:checked('problems'),
+      problem_frequency:v('#sv-pfreq'),severity:v('#sv-sev'),story:v('#sv-story'),improvements:checked('improvements'),
+      missing:v('#sv-missing'),age_range:v('#sv-age'),region:v('#sv-region'),email:v('#sv-email'),consent:$('#sv-consent').checked
+    });
+    e.target.reset(); fb.textContent='Thank you. Your survey has been sent privately to the TravBud team.';
+  } catch(error) { console.error('Survey failed:',error); fb.textContent=error.message||'We could not save your survey just now. Please try again.'; }
+  finally {btn.disabled=false;}
 });
 
 // Admin insights + export (reads are blocked by RLS for non-admins).
@@ -371,16 +317,12 @@ let adminExport = { ideas: [], surveys: [] };
 const barsHtml = (title, rows) => { const top = Object.entries(rows).sort((a, b) => b[1] - a[1]).slice(0, 8), max = top[0]?.[1] || 1;
   return `<div class="insight"><h4>${title}</h4>${top.length ? top.map(([k, n]) => `<div class="barrow"><span>${esc(k)}</span><div class="bar"><i style="transform:scaleX(${n / max})"></i></div><b>${n}</b></div>`).join('') : '<p class="loading">No survey data yet.</p>'}</div>`; };
 async function loadInsights() {
-  const { data, error } = await supabase.from('survey_responses').select('*').order('created_at', { ascending: false }).limit(1000);
-  if (error) {
-    $('#admin-insights').textContent = /not found|schema cache|PGRST205|does not exist/i.test(`${error.code || ''} ${error.message || ''}`)
-      ? 'Survey insights will appear after the survey_responses database migration is applied.'
-      : 'Unable to load survey insights: ' + error.message;
-    return;
-  }
-  adminExport.surveys = data || [];
-  const tally = (f) => adminExport.surveys.reduce((a, r) => ((r[f] || []).forEach(x => a[x] = (a[x] || 0) + 1), a), {});
-  $('#admin-insights').innerHTML = `<p class="insight-count">${adminExport.surveys.length} survey responses</p>` + barsHtml('Most reported travel difficulties', tally('problems')) + barsHtml('Most requested improvements', tally('improvements'));
+  try {
+    const result=await runApi('surveys','GET',{},true);
+    adminExport.surveys=normalizeRows(result.rows);
+    const tally=f=>adminExport.surveys.reduce((a,r)=>((r[f]||[]).forEach(x=>a[x]=(a[x]||0)+1),a),{});
+    $('#admin-insights').innerHTML=`<p class="insight-count">${adminExport.surveys.length} survey responses</p>`+barsHtml('Most reported travel difficulties',tally('problems'))+barsHtml('Most requested improvements',tally('improvements'));
+  } catch(error) { $('#admin-insights').textContent='Unable to load survey insights: '+error.message; }
 }
 document.querySelectorAll('[data-export]').forEach(b => b.addEventListener('click', () => {
   const rows = [...adminExport.ideas.map(r => ({ kind: 'idea', ...r })), ...adminExport.surveys.map(r => ({ kind: 'survey', ...r }))];
