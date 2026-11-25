@@ -92,7 +92,7 @@ $('#app').innerHTML = `
   <section class="closing section-shell"><p class="eyebrow">TRAVBUD IDEALAB</p><h2>Better journeys don't<br>happen by <em>accident.</em></h2><p>They happen when we listen to the people taking them.</p><a href="#submit" class="text-link">Add your voice <span>↗</span></a></section>
 </main>
 <footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><button id="footer-team" class="footer-team">Private team access ↗</button></footer>
-<div class="modal" id="admin-modal" aria-hidden="true"><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Sign in with an authorised team email to view and manage private submissions.</p><form id="admin-login"><label for="admin-email">Team email</label><input id="admin-email" type="email" required autocomplete="email" placeholder="team@example.com"><div class="team-login-actions"><button class="primary" type="submit">Email me a sign-in code ↗</button></div><div id="team-code-panel" hidden><label for="admin-code">6-digit email code</label><input id="admin-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000"><button class="primary" id="verify-team-code" type="button">Verify code and open inbox</button><button class="text-button" id="resend-team-code" type="button">Send a new code</button></div></form><p id="admin-message" class="admin-message" role="status"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
+<div class="modal" id="admin-modal" aria-hidden="true"><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Sign in with an authorised team email to view and manage private submissions.</p><form id="admin-login"><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><div class="team-login-actions"><button class="primary" type="submit">Send secure sign-in link <span aria-hidden="true">↗</span></button></div></form><p id="admin-message" class="admin-message" role="status"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 
 const form = $('#idea-form');
@@ -128,7 +128,6 @@ function closeAdmin() { modal.classList.remove('open'); modal.setAttribute('aria
 $('#admin-open').onclick = openAdmin; $('#footer-team').onclick = openAdmin; $('#admin-close').onclick = closeAdmin;
 modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdmin(); });
-let pendingTeamEmail = '';
 const OTP_COOLDOWN_STORAGE = 'travbud-idealab-otp-next-request';
 let otpCooldownInterval = null;
 function setOtpCooldown(seconds, message) {
@@ -139,73 +138,46 @@ function setOtpCooldown(seconds, message) {
   const update = () => {
     const remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
     button.disabled = remaining > 0;
-    button.textContent = remaining ? 'Please wait ' + remaining + 's' : 'Send a new secure code';
+    button.textContent = remaining ? 'Try again in ' + remaining + 's' : 'Send secure sign-in link ↗';
     if (!remaining) clearInterval(otpCooldownInterval);
   };
   $('#admin-message').textContent = message;
   update();
   otpCooldownInterval = setInterval(update, 1000);
 }
-function restoreOtpCooldown() {
-  try {
-    const until = Number(localStorage.getItem(OTP_COOLDOWN_STORAGE) || 0);
-    const remaining = Math.ceil((until - Date.now()) / 1000);
-    if (remaining > 0) setOtpCooldown(remaining, 'A recent sign-in email was requested. Please wait before requesting another.');
-  } catch {}
-}
-restoreOtpCooldown();
-async function sendTeamCode() {
+try {
+  const until = Number(localStorage.getItem(OTP_COOLDOWN_STORAGE) || 0);
+  const remaining = Math.ceil((until - Date.now()) / 1000);
+  if (remaining > 0) setOtpCooldown(remaining, 'A sign-in email was recently requested. Please wait before requesting another.');
+} catch {}
+$('#admin-login').addEventListener('submit', async e => {
+  e.preventDefault();
   if (!supabase) return;
   const email = $('#admin-email').value.trim().toLowerCase();
-  if (!email) { $('#admin-message').textContent = 'Enter your authorised team email address.'; return; }
   const button = $('#admin-login button[type="submit"]');
-  if (button.disabled) return;
-  button.disabled = true; button.textContent = 'Sending secure code…';
-  $('#admin-message').textContent = 'Sending a private sign-in code. This can take a few moments.';
+  if (!email || button.disabled) return;
+  button.disabled = true; button.textContent = 'Sending secure link…';
+  $('#admin-message').textContent = 'We are preparing your private IdeaLab sign-in email.';
   try {
-    const result = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { shouldCreateUser: false, emailRedirectTo: IDEALAB_URL }
     });
-    if (result.error) {
-      if (result.error.status === 429 || /rate.?limit|too many requests/i.test(result.error.message || '')) {
-        setOtpCooldown(600, 'Email delivery is temporarily limited by Supabase. Please wait 10 minutes and try once. The project needs custom SMTP for reliable team sign-in.');
+    if (error) {
+      if (error.status === 429 || /rate.?limit|too many requests/i.test(error.message || '')) {
+        setOtpCooldown(600, 'Supabase has temporarily limited email delivery. Your account is safe. Wait 10 minutes before trying again. Custom SMTP must be configured to restore reliable email sign-in.');
       } else {
-        button.disabled = false; button.textContent = 'Send a new secure code';
-        $('#admin-message').textContent = /signups not allowed/i.test(result.error.message || '')
-          ? 'This email is not registered in IdeaLab yet. An administrator must create the team account first.'
-          : (result.error.message || 'We could not send your sign-in code.');
+        button.disabled = false; button.textContent = 'Send secure sign-in link ↗';
+        $('#admin-message').textContent = /signups not allowed/i.test(error.message || '')
+          ? 'This address is not registered as a team account yet. An administrator must create the account first.'
+          : (error.message || 'We could not send your sign-in link.');
       }
       return;
     }
-    pendingTeamEmail = email;
-    $('#team-code-panel').hidden = false;
-    setOtpCooldown(60, 'Check your inbox for the six-digit IdeaLab sign-in code. If it is not there, check Spam. Use the newest code only.');
-    $('#admin-code').focus();
-  } catch (err) {
-    button.disabled = false; button.textContent = 'Send a new secure code';
-    $('#admin-message').textContent = 'Connection problem. Please try again when your internet connection is stable.';
-  }
-}
-$('#admin-login').addEventListener('submit', async e => { e.preventDefault(); await sendTeamCode(); });
-$('#resend-team-code').addEventListener('click', sendTeamCode);
-$('#verify-team-code').addEventListener('click', async () => {
-  const token = $('#admin-code').value.trim();
-  if (!pendingTeamEmail || token.length !== 6 || !Array.from(token).every(ch => ch >= '0' && ch <= '9')) {
-    $('#admin-message').textContent = 'Enter the six-digit code from your email.'; return;
-  }
-  const button = $('#verify-team-code'); button.disabled = true; button.textContent = 'Verifying securely…';
-  try {
-    const result = await supabase.auth.verifyOtp({ email: pendingTeamEmail, token, type: 'email' });
-    button.disabled = false; button.textContent = 'Verify code and open private inbox';
-    if (result.error) { $('#admin-message').textContent = 'That code is invalid or has expired. Request a new code after the resend timer ends.'; return; }
-    try { localStorage.removeItem(OTP_COOLDOWN_STORAGE); } catch {}
-    $('#admin-code').value = '';
-    $('#admin-message').textContent = 'Email verified. Confirming your team access…';
-    await checkAdmin();
-  } catch (err) {
-    button.disabled = false; button.textContent = 'Verify code and open private inbox';
-    $('#admin-message').textContent = 'We could not verify the code. Please try again.';
+    setOtpCooldown(60, 'Check your inbox for your secure TravBud IdeaLab sign-in link. Open the newest email on this device. You will stay signed in on this device after successful verification.');
+  } catch (error) {
+    button.disabled = false; button.textContent = 'Send secure sign-in link ↗';
+    $('#admin-message').textContent = 'Connection issue. Please check your internet and try again.';
   }
 });
 async function checkAdmin() {
