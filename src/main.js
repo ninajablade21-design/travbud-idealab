@@ -59,15 +59,15 @@ $('#app').innerHTML = `
       <div class="films-heading"><h2>Ideas become<br><em>real journeys.</em></h2><p>Explore the TravBud vision and the door-to-door planning experience we're working towards.</p></div>
       <div class="films-grid">
         <article class="film-card film-feature">
-          <div class="film-frame"><video controls playsinline preload="metadata" poster="" aria-label="TravBud product overview"><source src="/travbud-ad-silent.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
+          <div class="film-frame"><video controls playsinline preload="metadata" poster="" aria-label="TravBud product overview"><source src="${import.meta.env.BASE_URL}travbud-ad-silent.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
           <div class="film-meta"><span>01 / PRODUCT OVERVIEW</span><h3>Meet TravBud</h3><p>A look at the connected travel experience we're imagining.</p></div>
         </article>
         <article class="film-card">
-          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud door-to-door travel planning"><source src="/viraldub-travbud-plan-door-to-door.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
+          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud door-to-door travel planning"><source src="${import.meta.env.BASE_URL}viraldub-travbud-plan-door-to-door.mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
           <div class="film-meta"><span>02 / DOOR-TO-DOOR PLANNING</span><h3>One journey, connected</h3><p>See the idea behind live fares and a more complete travel plan.</p></div>
         </article>
         <article class="film-card">
-          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud campaign video with music"><source src="/travbud-ad-with-music%20(5).mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
+          <div class="film-frame"><video controls playsinline preload="metadata" aria-label="TravBud campaign video with music"><source src="${import.meta.env.BASE_URL}travbud-ad-with-music%20(5).mp4" type="video/mp4">Your browser does not support HTML video.</video></div>
           <div class="film-meta"><span>03 / CAMPAIGN FILM</span><h3>TravBud in motion</h3><p>Another cut from the TravBud product story.</p></div>
         </article>
         </article>
