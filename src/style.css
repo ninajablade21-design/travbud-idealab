@@ -570,3 +570,29 @@ body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .admin-full-record summary{cursor:pointer;padding:12px 14px;font-size:13px;font-weight:800;color:#8fe5dc}
 .admin-full-record pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:520px;overflow:auto;margin:0;padding:14px;border-top:1px solid #ffffff1c;color:#e1ebef;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}
 .admin-summary{grid-template-columns:repeat(auto-fit,minmax(135px,1fr))}
+
+/* Full-screen in-app owner page, matching the main navigation destinations. */
+.owner-workspace{width:100%;min-height:calc(100dvh - 76px);padding:clamp(24px,4vw,56px) clamp(18px,5vw,76px);background:linear-gradient(145deg,#091a29,#0b1c2a 58%,#0b2530);}
+.owner-shell{width:min(1480px,100%);margin:0 auto;}
+.owner-heading{display:flex;justify-content:space-between;align-items:center;gap:24px;margin:8px 0 28px;padding-bottom:26px;border-bottom:1px solid #ffffff20;}
+.owner-heading h1{font:800 clamp(34px,4vw,56px)/1.05 Manrope,sans-serif;margin:10px 0;letter-spacing:-.04em;color:#f3f8f9;}
+.owner-heading .dialog-copy{font-size:15px;color:#aabdc8;margin:0;}
+.owner-live{display:flex;align-items:center;gap:9px;padding:11px 15px;border:1px solid #82e5df55;border-radius:30px;color:#9cf0df;font-size:11px;font-weight:800;letter-spacing:.08em;white-space:nowrap;}
+.owner-live i{width:8px;height:8px;border-radius:50%;background:#69e2bd;box-shadow:0 0 12px #69e2bd;}
+.owner-workspace .team-auth-form{width:min(520px,100%);padding:26px;margin:26px 0;background:#102638;border:1px solid #ffffff20;border-radius:16px;box-shadow:0 20px 50px #0003;}
+.owner-workspace .team-auth-form label{display:block;margin:0 0 10px;color:#e3edef;font-size:14px;font-weight:750;}
+.owner-workspace .team-auth-form input{width:100%;min-height:54px;padding:14px;border:1px solid #ffffff32;border-radius:9px;background:#071522;color:#fff;font-size:15px;}
+.owner-workspace .team-auth-form .primary{width:100%;margin-top:14px;min-height:52px;}
+.owner-workspace #admin-dashboard{margin-top:26px;}
+.owner-workspace .admin-tabs{position:sticky;top:76px;z-index:10;background:#0a1b29f2;backdrop-filter:blur(12px);padding:14px 0;}
+.owner-workspace .admin-panel{padding:14px 0 36px;}
+.owner-workspace .admin-idea{padding:clamp(18px,2vw,28px);border-radius:14px;}
+.owner-workspace .admin-idea h3{font-size:18px;}
+.owner-workspace .admin-idea p,.owner-workspace .admin-byline{font-size:13px;}
+.owner-workspace .admin-summary{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;}
+.owner-workspace .admin-summary>div{padding:20px;border-radius:12px;}
+.owner-workspace .admin-summary small{font-size:12px;}
+.owner-workspace .admin-summary strong{font-size:30px;}
+.owner-workspace .admin-panel-heading p{font-size:14px;}
+.owner-workspace .admin-export button,.owner-workspace .outline-btn{font-size:13px;padding:12px 16px;}
+@media(max-width:700px){.owner-workspace{padding:25px 15px;min-height:calc(100dvh - 68px)}.owner-heading{align-items:flex-start;flex-direction:column}.owner-workspace .admin-tabs{top:68px}.owner-workspace .team-auth-form{padding:20px}.owner-workspace .admin-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
