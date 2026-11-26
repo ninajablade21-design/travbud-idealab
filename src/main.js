@@ -45,7 +45,7 @@ $('#app').innerHTML = `
     </div>
   </section>
   <div class="ticker"><span>REAL TRAVEL PROBLEMS</span><b>✳</b><span>USEFUL IDEAS</span><b>✳</b><span>ACCESS FOR EVERYONE</span><b>✳</b><span>BETTER JOURNEYS</span><b>✳</b><span>REAL TRAVEL PROBLEMS</span></div>
-  <section id="community" class="community-section section-shell"><div class="community-heading"><div><p class="eyebrow">COMMUNITY VOICES</p><h2>Ideas from <em>travellers.</em></h2></div><p>New ideas shared with the community appear here automatically. Personal contact details and survey answers are never shown.</p></div><div id="community-feed" class="community-feed" aria-live="polite"><p class="community-loading">Loading community ideas…</p></div></section>
+  <section id="community" class="community-section section-shell"><div class="community-heading"><div><p class="eyebrow">COMMUNITY VOICES</p><h2>Ideas from <em>travellers.</em></h2></div><p>✨ New ideas and opted-in survey responses appear here. Tap any card to read the full submission. Contact details, age and region stay private.</p></div><div id="community-feed" class="community-feed" aria-live="polite"><p class="community-loading">Loading community ideas…</p></div></section>
   <section id="why" class="intro section-shell">
     <div><p class="eyebrow">01 / WHY IDEALAB EXISTS</p><h2>A private place to<br><em>shape what's next.</em></h2></div>
     <div class="intro-copy"><p>TravBud is still being shaped. Before we build more, we want to understand the real-world challenges people face when planning, booking and taking trips.</p><p>IdeaLab is a private channel between travellers and the people building TravBud. Share the small frustrations, big barriers and ambitious ideas. Our team will read every submission and use the patterns to guide what we build.</p><div class="principle"><span>01</span> Listen before we build <span>02</span> Design for real people</div></div>
@@ -84,9 +84,9 @@ $('#app').innerHTML = `
   </section>
   <section id="survey" class="submit-section">
     <div class="submit-shell">
-      <div class="submit-intro"><p class="eyebrow">03 / TRAVELLER SURVEY</p><h2>Tell us about<br>your <em>journeys.</em></h2><p>Takes 3 to 5 minutes. Skip anything that doesn't apply. Your answers are visible only to authorised TravBud IdeaLab admins.</p></div>
+      <div class="submit-intro"><p class="eyebrow">03 / TRAVELLER SURVEY</p><h2>Tell us about<br>your <em>journeys.</em></h2><p>⏱️ Takes 3 to 5 minutes. Your answers appear in Community Voices after you agree to public sharing below. Email, age and region stay private.</p></div>
       <form id="survey-form" class="idea-form">
-        <div class="form-heading"><span>TRAVELLER SURVEY</span><span>PRIVATE INBOX · 02</span></div>
+        <div class="form-heading"><span>🧭 TRAVELLER SURVEY</span><span>COMMUNITY + PRIVATE DETAILS</span></div>
         <label for="sv-freq">How often do you travel?</label><select id="sv-freq">${opts(['Daily / commuting','Weekly','Monthly','Few times a year','Rarely'],'Choose one')}</select>
         <label for="sv-purpose">Main reason for travel</label><select id="sv-purpose">${opts(['Work / business','Education','Tourism / holidays','Family / personal','Medical','Other'],'Choose one')}</select>
         <label>Transport you use most <span class="optional">SELECT ALL THAT APPLY</span></label>${chips('transport', transports)}
@@ -99,7 +99,7 @@ $('#app').innerHTML = `
         <label for="sv-age">Age range <span class="optional">OPTIONAL</span></label><select id="sv-age">${opts(['Under 18','18–24','25–34','35–44','45–59','60+'],'Prefer not to say')}</select>
         <label for="sv-region">Country / region <span class="optional">OPTIONAL</span></label><input id="sv-region" maxlength="80" placeholder="e.g. India, Kerala">
         <label for="sv-email">Email <span class="optional">OPTIONAL · FOR FOLLOW-UP</span></label><input id="sv-email" type="email" maxlength="254" placeholder="you@example.com">
-        <label class="consent-row required-consent"><input type="checkbox" id="sv-consent" required><span><b>I agree my answers may be stored and reviewed. <sup>*</sup></b><small>Please don't include passwords, payment details or other sensitive personal information.</small></span></label>
+        <label class="consent-row required-consent"><input type="checkbox" id="sv-consent" required><span><b>I agree my survey may be stored and reviewed. <sup>*</sup></b><small>Your email, age range and region are kept private.</small></span></label><label class="consent-row required-consent"><input type="checkbox" id="sv-community-consent" required><span><b>🌍 I agree to publish my survey answers in Community Voices. <sup>*</sup></b><small>Visitors can read your answers, including your written journey story and suggestions. Email, age range and region are never published. Do not include names, contact details, exact addresses, passwords, payment details or sensitive personal information. Public-sharing consent is required to submit this survey.</small></span></label>
         <button class="primary submit-button" type="submit">Send survey <span>↗</span></button><p class="form-feedback" id="sv-feedback" role="status" aria-live="polite"></p>
       </form>
     </div>
@@ -108,7 +108,7 @@ $('#app').innerHTML = `
     <div class="submit-shell">
       <div class="submit-intro"><p class="eyebrow">SHARE AN IDEA</p><h2>Help shape<br><em>better journeys.</em></h2><p>Share a challenge you've faced or an idea that could make travelling simpler, more connected or more inclusive.</p><div class="private-card"><span>✳</span><div><b>Community sharing</b><small>Your first name, idea title, category and idea text will be visible to everyone after you submit. Your email and device details stay private. Do not include personal or sensitive information in your idea.</small></div></div></div>
       <form id="idea-form" class="idea-form">
-        <div class="form-heading"><span>IDEA SUBMISSION</span><span>PRIVATE INBOX · 01</span></div>
+        <div class="form-heading"><span>💡 IDEA SUBMISSION</span><span>COMMUNITY VOICES · 01</span></div>
         <label for="submitter-name">Your name <sup>*</sup></label><input id="submitter-name" name="submitter_name" required minlength="2" maxlength="80" autocomplete="name" placeholder="How should we address you?">
         <label for="idea-category">Which area does this relate to? <sup>*</sup></label><select id="idea-category" name="category" required><option value="">Choose a topic</option>${categories.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
         <label for="idea-audience">Who benefits most? <span class="optional">OPTIONAL</span></label><select id="idea-audience">${opts(audiences,'Choose audience')}</select>
@@ -126,7 +126,7 @@ $('#app').innerHTML = `
 </main>
 <footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><button id="footer-team" class="footer-team">Private team access ↗</button></footer>
 <div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Use your authorised team account. Password sign-in works without sending an email; secure email links are available as a backup.</p><div class="team-auth-tabs" role="tablist" aria-label="Team sign-in method"><button type="button" class="team-auth-tab active" id="tab-password" role="tab" aria-selected="true" aria-controls="password-login">Password</button><button type="button" class="team-auth-tab" id="tab-link" role="tab" aria-selected="false" aria-controls="link-login">Email link</button></div><form id="password-login" class="team-auth-form"><label for="password-email">Work email address</label><input id="password-email" type="email" required autocomplete="username" placeholder="name@company.com"><label for="team-password">Password</label><input id="team-password" type="password" required autocomplete="current-password" placeholder="Your team password"><button class="primary" type="submit">Sign in to private inbox <span aria-hidden="true">↗</span></button></form><form id="link-login" class="team-auth-form" hidden><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><button class="primary" type="submit">Email me a secure sign-in link <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-insights" class="admin-insights"></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>`;
+<div class="community-detail" id="community-detail" aria-hidden="true"><div class="community-detail-panel" role="dialog" aria-modal="true" aria-labelledby="community-detail-title"><button type="button" class="community-detail-close" id="community-detail-close" aria-label="Close full response">×</button><p class="eyebrow" id="community-detail-kind">COMMUNITY VOICE</p><h2 id="community-detail-title">Full response</h2><div id="community-detail-content" class="community-detail-content"></div></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 
 const form = $('#idea-form');
 $('#idea-details').addEventListener('input', e => $('#char-count').textContent = e.target.value.length + ' / 5000');
@@ -382,7 +382,7 @@ $('#survey-form').addEventListener('submit', async e => {
     const result = await supabase.from('survey_responses').insert({
       travel_frequency: v('#sv-freq'), travel_purpose: v('#sv-purpose'), transport: checked('transport'), problems: checked('problems'),
       problem_frequency: v('#sv-pfreq'), severity: v('#sv-sev'), story: v('#sv-story'), improvements: checked('improvements'),
-      missing: v('#sv-missing'), age_range: v('#sv-age'), region: v('#sv-region'), email: v('#sv-email'), consent: true
+      missing: v('#sv-missing'), age_range: v('#sv-age'), region: v('#sv-region'), email: v('#sv-email'), consent: true, community_visible: $('#sv-community-consent').checked
     });
     error = result.error;
   } catch (requestError) {
@@ -394,7 +394,7 @@ $('#survey-form').addEventListener('submit', async e => {
     fb.textContent = 'Your survey was NOT confirmed as saved. Please check your connection and try again. (' + (error.code || 'network error') + ')';
     return;
   }
-  e.target.reset(); fb.textContent = 'Thank you. Your survey has been sent privately to the TravBud team.';
+  e.target.reset(); await loadCommunityIdeas(); fb.textContent = '🎉 Your survey is saved and visible in Community Voices. Email, age and region remain private.';
 });
 
 // Admin insights + export (reads are blocked by RLS for non-admins).
