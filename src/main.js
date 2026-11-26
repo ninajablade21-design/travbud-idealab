@@ -27,10 +27,8 @@ $('#app').innerHTML = `
   <a class="brand" href="#top" aria-label="TravBud IdeaLab home"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a>
   <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">☰</button>
   <nav class="site-nav" id="site-nav" aria-label="Main navigation">
-    <a href="#home" data-page="home">Home</a><a href="#explore" data-page="explore">Explore</a><a href="#videos" data-page="videos">Videos</a><a href="#survey" data-page="survey">Survey</a><a href="#idea" data-page="idea">Share an idea</a><a href="#privacy" data-page="privacy">Privacy</a>
-    <button class="team-link mobile-team-link" id="mobile-admin-open" type="button">Team sign in ↗</button>
+    <a href="#home" data-page="home">Home</a><a href="#explore" data-page="explore">Explore</a><a href="#videos" data-page="videos">Videos</a><a href="#survey" data-page="survey">Survey</a><a href="#idea" data-page="idea">Share an idea</a><a href="#privacy" data-page="privacy">Privacy</a><a href="#owner" data-page="owner">Owner</a>
   </nav>
-  <button class="team-link desktop-team-link" id="admin-open" type="button">Team sign in <span>↗</span></button>
 </header>
 <main id="top">
   <section class="hero">
@@ -128,34 +126,36 @@ $('#app').innerHTML = `
   </section>
   <section class="closing section-shell"><p class="eyebrow">🌍 TRAVBUD IDEALAB</p><h2>Better journeys don't<br>happen by <em>accident.</em></h2><p>They happen when we listen to the people taking them.</p><a href="#submit" class="text-link">Add your voice <span>↗</span></a></section>
 </main>
-<footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><button id="footer-team" class="footer-team">Private team access ↗</button></footer>
-<div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Private administrator access. Enter the single Admin Access Key.</p><form id="admin-key-login" class="team-auth-form"><label for="admin-access-key">Admin Access Key</label><input id="admin-access-key" type="password" required minlength="32" maxlength="128" autocomplete="current-password" placeholder="Paste your private admin access key"><button class="primary" type="submit">Unlock private inbox <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden>
+<footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><a id="footer-team" class="footer-team" href="#owner">Owner workspace ↗</a></footer>
+<section class="owner-workspace" id="admin-modal" aria-label="TravBud owner workspace"><div class="owner-shell"><div class="owner-heading"><div><p class="eyebrow">TRAVBUD · OWNER</p><h1>Owner workspace</h1><p class="dialog-copy">Your complete IdeaLab control centre.</p></div><span class="owner-live"><i></i> OWNER ACCESS</span></div><form id="admin-key-login" class="team-auth-form"><label for="admin-access-key">Owner access key</label><input id="admin-access-key" type="password" required minlength="32" maxlength="128" autocomplete="current-password" placeholder="Enter your owner access key"><button class="primary" type="submit">Open owner workspace <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden>
 <nav class="admin-tabs" aria-label="Admin dashboard sections">
 <button class="admin-tab active" data-admin-tab="overview">Overview</button>
 <button class="admin-tab" data-admin-tab="ideas">Community ideas</button>
 <button class="admin-tab" data-admin-tab="surveys">Survey responses</button>
 <button class="admin-tab" data-admin-tab="insights">Reports & insights</button>
 <button class="admin-tab" data-admin-tab="activity">Activity log</button>
-<button class="admin-tab" data-admin-tab="settings">Admin settings</button>
+<button class="admin-tab" data-admin-tab="settings">Owner settings</button>
 </nav>
 <section class="admin-panel active" data-admin-panel="overview"><div class="admin-summary" id="admin-summary"></div><h3>Latest activity</h3><div id="admin-overview-rows" class="admin-rows"></div></section>
 <section class="admin-panel" data-admin-panel="ideas"><div class="admin-panel-heading"><div><h3>Community ideas</h3><p>Review, update, export or permanently remove private submissions.</p></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div></div><div id="admin-rows" class="admin-rows"></div></section>
 <section class="admin-panel" data-admin-panel="surveys"><div class="admin-panel-heading"><div><h3>Survey responses</h3><p>Every answer, optional contact field and moderation note is available in each full record.</p></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export all records CSV</button><button class="outline-btn" data-export="json">Export all records JSON</button></div></div><div id="admin-survey-rows" class="admin-rows"></div></section>
 <section class="admin-panel" data-admin-panel="insights"><div id="admin-insights" class="admin-insights"></div></section>
 <section class="admin-panel" data-admin-panel="activity"><div class="admin-panel-heading"><div><h3>Admin activity log</h3><p>Recorded changes made in this private workspace.</p></div></div><div id="admin-audit-rows" class="admin-rows"></div></section>
-<section class="admin-panel" data-admin-panel="settings"><h3>Admin settings</h3><p>Only authorised administrator accounts can access this workspace. Never share credentials or access keys.</p><p>Moderation actions are recorded in the private audit log.</p><button id="admin-logout" class="outline-btn">Sign out</button></section>
-</div></div></div>
+<section class="admin-panel" data-admin-panel="settings"><h3>Owner settings</h3><p>This workspace is available to whoever holds the owner access key. Keep that key secure.</p><p>Changes made here appear in the activity history.</p><button id="admin-logout" class="outline-btn">Sign out</button></section>
+</div></div></section>
 <div class="community-detail" id="community-detail" aria-hidden="true"><div class="community-detail-panel" role="dialog" aria-modal="true" aria-labelledby="community-detail-title"><button type="button" class="community-detail-close" id="community-detail-close" aria-label="Close full response">×</button><p class="eyebrow" id="community-detail-kind">COMMUNITY VOICE</p><h2 id="community-detail-title">Full response</h2><div id="community-detail-content" class="community-detail-content"></div></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 
 // Convert the long landing page into in-site views. Only the selected view is shown.
 const mainView = $('#top');
+mainView.appendChild($('#admin-modal'));
 const viewDefinitions = [
   ['home', 'Home', ['.hero', '.ticker', '.closing']],
   ['explore', 'Explore', ['#why', '#focus', '.process']],
   ['videos', 'Videos', ['#films']],
   ['survey', 'Traveller survey', ['#survey']],
   ['idea', 'Share an idea', ['#submit']],
-  ['privacy', 'Privacy', ['#community']]
+  ['privacy', 'Privacy', ['#community']],
+  ['owner', 'Owner', ['#admin-modal']]
 ];
 for (const [key, title, selectors] of viewDefinitions) {
   const view = document.createElement('div');
@@ -210,7 +210,6 @@ $('#mobile-menu-toggle').addEventListener('click', () => {
   $('#mobile-menu-toggle').setAttribute('aria-expanded', String(open));
   $('#mobile-menu-toggle').textContent = open ? '×' : '☰';
 });
-$('#mobile-admin-open').addEventListener('click', openAdminInNewTab);
 showPage(pageFromHash(location.hash));
 
 const form = $('#idea-form');
@@ -252,40 +251,17 @@ form.addEventListener('submit', async e => {
 document.querySelectorAll('[data-access]').forEach(control => control.addEventListener('change', () => document.documentElement.classList.toggle('access-' + control.dataset.access, control.checked)));
 
 const modal = $('#admin-modal');
-let adminReturnFocus = null;
-function openAdminInNewTab() {
-  const adminUrl = new URL(window.location.href);
-  adminUrl.searchParams.set('admin', '1');
-  adminUrl.hash = '';
-  window.open(adminUrl.toString(), '_blank', 'noopener,noreferrer');
-}
-function openAdmin(event) {
-  if (event?.currentTarget instanceof HTMLElement) adminReturnFocus = event.currentTarget;
-  modal.inert = false;
-  modal.setAttribute('aria-hidden', 'false');
-  modal.classList.add('open');
-  $('#admin-close').focus();
+function openAdmin() {
+  showPage('owner', true);
   $('#admin-key-login').hidden = false;
   $('#admin-dashboard').hidden = true;
-  if (!supabase) $('#admin-message').textContent = 'Admin service is not connected.';
+  if (!supabase) $('#admin-message').textContent = 'Owner service is not connected.';
+  $('#admin-access-key').focus();
 }
-function closeAdmin() {
-  if (!modal.classList.contains('open')) return;
-  const returnTarget = adminReturnFocus?.isConnected ? adminReturnFocus : $('#admin-open');
-  if (modal.contains(document.activeElement)) returnTarget?.focus();
-  lockAdmin('Admin session closed.');
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden', 'true');
-  modal.inert = true;
+if (new URLSearchParams(window.location.search).get('owner') === '1') {
+  history.replaceState({}, '', location.pathname + '#owner');
+  openAdmin();
 }
-$('#admin-open').onclick = openAdminInNewTab;
-$('#footer-team').onclick = openAdminInNewTab;
-if (new URLSearchParams(window.location.search).get('admin') === '1') openAdmin();
-$('#admin-close').onclick = closeAdmin;
-modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && modal.classList.contains('open')) closeAdmin();
-});
 const ADMIN_API = 'https://rsnmwoxawgmpebiusuqr.supabase.co/functions/v1/idealab-admin';
 let activeAdminSession = '';
 async function callAdminApi(action, payload = {}) {
@@ -331,7 +307,7 @@ $('#admin-key-login').addEventListener('submit', async e => {
   e.preventDefault();
   const key = $('#admin-access-key').value.trim();
   const button = e.target.querySelector('button[type="submit"]');
-  if (!supabase || key.length < 32) { $('#admin-message').textContent = 'Enter a valid Admin Access Key.'; return; }
+  if (!supabase || key.length < 32) { $('#admin-message').textContent = 'Enter a valid owner access key.'; return; }
   button.disabled = true; button.textContent = 'Verifying key…';
   try {
     const response = await fetch(ADMIN_API, {
@@ -350,12 +326,12 @@ $('#admin-key-login').addEventListener('submit', async e => {
     $('#admin-access-key').value = '';
     $('#admin-key-login').hidden = true;
     $('#admin-dashboard').hidden = false;
-    $('#admin-message').textContent = 'Access granted. Loading private submissions…';
+    $('#admin-message').textContent = 'Welcome, owner. Loading all IdeaLab data…';
     await loadAdminIdeas();
   } catch {
     $('#admin-message').textContent = 'Could not reach the secure admin service. Check your connection and try again.';
   } finally {
-    button.disabled = false; button.textContent = 'Unlock private inbox ↗';
+    button.disabled = false; button.textContent = 'Open owner workspace ↗';
   }
 });
 async function auditModeration() { return; }
@@ -427,8 +403,8 @@ async function loadAdminIdeas() {
   rows.innerHTML = surveyRows.innerHTML = overview.innerHTML = auditRows.innerHTML = '<p class="loading">Loading complete private workspace…</p>';
   const { data, error } = await callAdminRpc('idealab_admin_list');
   if (error || !data) {
-    $('#admin-message').textContent = 'Unable to load private submissions. ' + (error?.message || 'Please unlock the inbox again.');
-    lockAdmin('Your admin session could not be verified. Enter the key again.');
+    $('#admin-message').textContent = 'Unable to load IdeaLab data. ' + (error?.message || 'Please enter the owner key again.');
+    lockAdmin('Your owner session expired. Enter the owner key again.');
     return;
   }
   const ideas = data.ideas || [], surveys = data.surveys || [], audit = data.audit || [];
