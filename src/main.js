@@ -265,6 +265,7 @@ function closeAdmin() {
   if (!modal.classList.contains('open')) return;
   const returnTarget = adminReturnFocus?.isConnected ? adminReturnFocus : $('#admin-open');
   if (modal.contains(document.activeElement)) returnTarget?.focus();
+  lockAdmin('Admin session closed.');
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden', 'true');
   modal.inert = true;
@@ -337,6 +338,7 @@ $('#admin-key-login').addEventListener('submit', async e => {
       return;
     }
     activeAdminSession = data.session;
+    $('#admin-access-key').value = '';
     $('#admin-key-login').hidden = true;
     $('#admin-dashboard').hidden = false;
     $('#admin-message').textContent = 'Access granted. Loading private submissions…';
