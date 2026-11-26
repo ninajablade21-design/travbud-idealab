@@ -135,12 +135,14 @@ $('#app').innerHTML = `
 <button class="admin-tab" data-admin-tab="ideas">Community ideas</button>
 <button class="admin-tab" data-admin-tab="surveys">Survey responses</button>
 <button class="admin-tab" data-admin-tab="insights">Reports & insights</button>
+<button class="admin-tab" data-admin-tab="activity">Activity log</button>
 <button class="admin-tab" data-admin-tab="settings">Admin settings</button>
 </nav>
 <section class="admin-panel active" data-admin-panel="overview"><div class="admin-summary" id="admin-summary"></div><h3>Latest activity</h3><div id="admin-overview-rows" class="admin-rows"></div></section>
 <section class="admin-panel" data-admin-panel="ideas"><div class="admin-panel-heading"><div><h3>Community ideas</h3><p>Review, update, export or permanently remove private submissions.</p></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div></div><div id="admin-rows" class="admin-rows"></div></section>
 <section class="admin-panel" data-admin-panel="surveys"><div class="admin-panel-heading"><div><h3>Survey responses</h3><p>Private answers and moderation controls for authorised administrators.</p></div></div><div id="admin-survey-rows" class="admin-rows"></div></section>
 <section class="admin-panel" data-admin-panel="insights"><div id="admin-insights" class="admin-insights"></div></section>
+<section class="admin-panel" data-admin-panel="activity"><div class="admin-panel-heading"><div><h3>Admin activity log</h3><p>Recorded changes made in this private workspace.</p></div></div><div id="admin-audit-rows" class="admin-rows"></div></section>
 <section class="admin-panel" data-admin-panel="settings"><h3>Admin settings</h3><p>Only authorised administrator accounts can access this workspace. Never share credentials or access keys.</p><p>Moderation actions are recorded in the private audit log.</p><button id="admin-logout" class="outline-btn">Sign out</button></section>
 </div></div></div>
 <div class="community-detail" id="community-detail" aria-hidden="true"><div class="community-detail-panel" role="dialog" aria-modal="true" aria-labelledby="community-detail-title"><button type="button" class="community-detail-close" id="community-detail-close" aria-label="Close full response">×</button><p class="eyebrow" id="community-detail-kind">COMMUNITY VOICE</p><h2 id="community-detail-title">Full response</h2><div id="community-detail-content" class="community-detail-content"></div></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
@@ -371,10 +373,12 @@ function renderModerationCard(r, type) {
   const body = idea ? r.details : [r.travel_frequency, ...(r.problems || []), r.story, ...(r.improvements || []), r.missing].filter(Boolean).join(' · ');
   const who = idea ? (r.submitter_name || 'Name not recorded') : 'Survey respondent';
   const status = idea ? (r.status || 'new') : (r.moderation_status || 'new');
+  const fullRecord = Object.entries(r).map(([key, value]) => key + ': ' + (value == null ? '—' : Array.isArray(value) ? value.join(' · ') : typeof value === 'object' ? JSON.stringify(value) : String(value))).join('\n');
   return `<article class="admin-idea moderation-card" data-record-id="${esc(id)}">
     <div class="admin-idea-top"><span class="category-tag">${esc(idea ? (categories.find(c=>c[0]===r.category)?.[1] || r.category) : 'TRAVELLER SURVEY')}</span><time>${esc(new Date(r.created_at).toLocaleString())}</time></div>
     <h3>${esc(heading)}</h3><p class="moderation-body">${esc(body || 'No written details provided.')}</p>
     <div class="admin-byline"><b>${esc(who)}</b><span>${esc(idea ? (r.email || 'No follow-up email') : (r.email || 'Email private / not provided'))}</span></div>
+    <details class="admin-full-record"><summary>View complete record · all submitted fields</summary><pre>${esc(fullRecord)}</pre></details>
     <div class="moderation-controls">
       <label>Moderation <select data-moderation-status><option value="new">New</option><option value="reviewing">Reviewing</option><option value="planned">Planned</option><option value="resolved">Resolved</option><option value="declined">Declined</option></select></label>
       <label class="moderation-note-label">Private note <input data-moderation-note maxlength="1000" placeholder="Internal note (never public)" value="${esc(r.moderator_note || '')}"></label>
@@ -419,22 +423,24 @@ async function bindModeration(container, records, type) {
   });
 }
 async function loadAdminIdeas() {
-  const rows = $('#admin-rows'), surveyRows = $('#admin-survey-rows'), overview = $('#admin-overview-rows');
-  rows.innerHTML = surveyRows.innerHTML = overview.innerHTML = '<p class="loading">Loading private submissions…</p>';
+  const rows = $('#admin-rows'), surveyRows = $('#admin-survey-rows'), overview = $('#admin-overview-rows'), auditRows = $('#admin-audit-rows');
+  rows.innerHTML = surveyRows.innerHTML = overview.innerHTML = auditRows.innerHTML = '<p class="loading">Loading complete private workspace…</p>';
   const { data, error } = await callAdminRpc('idealab_admin_list');
   if (error || !data) {
     $('#admin-message').textContent = 'Unable to load private submissions. ' + (error?.message || 'Please unlock the inbox again.');
     lockAdmin('Your admin session could not be verified. Enter the key again.');
     return;
   }
-  const ideas = data.ideas || [], surveys = data.surveys || [];
+  const ideas = data.ideas || [], surveys = data.surveys || [], audit = data.audit || [];
   adminExport.ideas = ideas; adminExport.surveys = surveys;
-  const counts = ideas.reduce((a, x) => (a[x.status] = (a[x.status] || 0) + 1, a), {});
-  $('#admin-summary').innerHTML = [['Ideas', ideas.length],['Surveys', surveys.length],['New ideas', counts.new || 0],['Private records', ideas.length + surveys.length]].map(([k,v]) => `<div><small>${k}</small><strong>${v}</strong></div>`).join('');
+  const counts = ideas.reduce((a, x) => (a[x.status || 'new'] = (a[x.status || 'new'] || 0) + 1, a), {});
+  const surveyCounts = surveys.reduce((a, x) => (a[x.moderation_status || 'new'] = (a[x.moderation_status || 'new'] || 0) + 1, a), {});
+  $('#admin-summary').innerHTML = [['Ideas', ideas.length],['Survey responses', surveys.length],['New ideas', counts.new || 0],['New surveys', surveyCounts.new || 0],['All private records', ideas.length + surveys.length],['Admin actions logged', audit.length]].map(([k,v]) => `<div><small>${k}</small><strong>${v}</strong></div>`).join('');
   rows.innerHTML = ideas.length ? ideas.map(r => renderModerationCard(r,'idea')).join('') : '<div class="empty-inbox">No ideas have been submitted yet.</div>';
   surveyRows.innerHTML = surveys.length ? surveys.map(r => renderModerationCard(r,'survey')).join('') : '<div class="empty-inbox">No survey responses yet.</div>';
   const latest = [...ideas.map(r=>({...r,_kind:'idea'})),...surveys.map(r=>({...r,_kind:'survey'}))].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,8);
   overview.innerHTML = latest.length ? latest.map(r => `<article class="admin-idea"><span class="category-tag">${r._kind === 'idea' ? 'COMMUNITY IDEA' : 'SURVEY RESPONSE'}</span><h3>${esc(r._kind === 'idea' ? r.title : (r.travel_purpose || 'Traveller survey'))}</h3><time>${esc(new Date(r.created_at).toLocaleString())}</time><p>${esc(r._kind === 'idea' ? r.details : (r.story || (r.problems || []).join(' · ') || 'Survey response'))}</p></article>`).join('') : '<p class="loading">No activity yet.</p>';
+  auditRows.innerHTML = audit.length ? audit.map(item => `<article class="admin-idea"><div class="admin-idea-top"><span class="category-tag">${esc(item.record_type || 'ADMIN')}</span><time>${esc(new Date(item.created_at).toLocaleString())}</time></div><h3>${esc(item.action.replaceAll('_',' '))}</h3><p>Record: ${esc(item.record_id)} · Details: ${esc(JSON.stringify(item.details || {}))}</p></article>`).join('') : '<div class="empty-inbox">No admin actions have been recorded yet.</div>';
   await bindModeration(rows, ideas, 'idea'); await bindModeration(surveyRows, surveys, 'survey');
   await loadInsights();
 }
