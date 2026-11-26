@@ -298,12 +298,13 @@ async function callAdminRpc(name, params = {}) {
   const map = {
     idealab_admin_list: ['list', {}],
     idealab_admin_update: ['update', { type: params.p_type, id: params.p_id, status: params.p_status, note: params.p_note }],
-    idealab_admin_edit: ['edit', { type: 'idea', id: params.p_id, title: params.p_title, details: params.p_details }],
+    idealab_admin_edit: ['edit', { id: params.p_id, title: params.p_title, details: params.p_details }],
     idealab_admin_delete: ['delete', { type: params.p_type, id: params.p_id }]
   };
   const entry = map[name];
   if (!entry) return { data: null, error: new Error('Unsupported admin operation.') };
-  return callAdminApi(entry[0], entry[1]);
+  const result = await callAdminApi(entry[0], entry[1]);
+  return result.error ? result : { data: name === 'idealab_admin_list' ? result.data : true, error: null };
 }
 function lockAdmin(message = 'You have signed out.') {
   const previousSession = activeAdminSession;
