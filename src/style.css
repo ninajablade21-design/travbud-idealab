@@ -596,3 +596,13 @@ body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .owner-workspace .admin-panel-heading p{font-size:14px;}
 .owner-workspace .admin-export button,.owner-workspace .outline-btn{font-size:13px;padding:12px 16px;}
 @media(max-width:700px){.owner-workspace{padding:25px 15px;min-height:calc(100dvh - 68px)}.owner-heading{align-items:flex-start;flex-direction:column}.owner-workspace .admin-tabs{top:68px}.owner-workspace .team-auth-form{padding:20px}.owner-workspace .admin-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Owner data browser: unified search, full-record view and responsive workspace tools. */
+.owner-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0 24px;padding:14px;border:1px solid #ffffff1c;border-radius:14px;background:#ffffff08;}
+.owner-tools input{flex:1 1 340px;min-width:220px;min-height:48px;padding:12px 15px;border:1px solid #ffffff30;border-radius:9px;background:#071522;color:#f4f8f9;font:14px 'DM Sans',Arial,sans-serif;}
+.owner-tools input::placeholder{color:#91a8b6;}
+.owner-tools span{color:#a8c0ca;font-size:12px;font-weight:700;}
+.owner-tools .outline-btn{margin:0;min-height:46px;}
+.owner-workspace .admin-panel-heading{margin-bottom:12px;}
+.owner-workspace .admin-idea[hidden]{display:none!important;}
+@media(max-width:600px){.owner-tools{align-items:stretch}.owner-tools input{flex-basis:100%;min-width:0}.owner-tools .outline-btn{width:100%}}
