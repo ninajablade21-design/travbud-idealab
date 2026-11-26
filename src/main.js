@@ -140,26 +140,22 @@ form.addEventListener('submit', async e => {
   if (name.length < 2 || title.length < 4 || details.length < 10) { feedback.textContent = 'Please complete the required fields before sending.'; return; }
   const consent = $('#consent-device').checked;
   const deviceContext = consent ? { user_agent: navigator.userAgent.slice(0, 300), language: navigator.language || null, screen: { width: screen.width, height: screen.height }, viewport: { width: innerWidth, height: innerHeight } } : {};
-  const payload = { submitter_name: name, category: data.get('category'), title, details, email: String(data.get('email') || '').trim() || null, consent_device_data: consent, device_context: deviceContext, status: 'new' };
+  const payload = { submitter_name: name, category: data.get('category'), audience: $('#idea-audience').value || null, impact: $('#idea-impact').value || null, title, details, email: String(data.get('email') || '').trim() || null, consent_device_data: consent, device_context: deviceContext, status: 'new' };
   const button = form.querySelector('button[type="submit"]');
-  button.disabled = true; button.textContent = 'Sending securely…'; feedback.textContent = '';
-  const { error } = await supabase.from('idea_submissions').insert(payload);
-  let submitError = error;
-  if (submitError && /column|schema cache|PGRST204/i.test(`${submitError.code || ''} ${submitError.message || ''}`)) {
-    const retry = await supabase.from('idea_submissions').insert({
-      submitter_name: payload.submitter_name,
-      category: payload.category,
-      title: payload.title,
-      details: payload.details,
-      email: payload.email,
-      consent_device_data: payload.consent_device_data,
-      device_context: payload.device_context,
-      status: payload.status
-    });
-    submitError = retry.error;
+  button.disabled = true; button.textContent = 'Saving securely…'; feedback.textContent = '';
+  let submitError = null;
+  try {
+    const result = await supabase.from('idea_submissions').insert(payload);
+    submitError = result.error;
+  } catch (error) {
+    submitError = error;
   }
   button.disabled = false; button.innerHTML = 'Send my idea <span>↗</span>';
-  if (submitError) { console.error('IdeaLab submission failed:', submitError); feedback.textContent = 'We could not save your idea just now. Please try again in a moment.'; return; }
+  if (submitError) {
+    console.error('IdeaLab submission failed:', submitError);
+    feedback.textContent = 'Your idea was NOT confirmed as saved. Please check your connection and try again. (' + (submitError.code || 'network error') + ')';
+    return;
+  }
   form.reset(); $('#char-count').textContent = '0 / 5000';
   feedback.textContent = 'Thank you. Your idea has been sent privately to the TravBud team.';
   $('#toast').textContent = 'Your idea is safely in the IdeaLab inbox.'; $('#toast').classList.add('show');
@@ -356,13 +352,23 @@ $('#survey-form').addEventListener('submit', async e => {
   if (!supabase) { fb.textContent = 'The secure submission service is not connected yet. Please try again later.'; return; }
   const v = (id) => $(id).value.trim() || null;
   btn.disabled = true; fb.textContent = '';
-  const { error } = await supabase.from('survey_responses').insert({
-    travel_frequency: v('#sv-freq'), travel_purpose: v('#sv-purpose'), transport: checked('transport'), problems: checked('problems'),
-    problem_frequency: v('#sv-pfreq'), severity: v('#sv-sev'), story: v('#sv-story'), improvements: checked('improvements'),
-    missing: v('#sv-missing'), age_range: v('#sv-age'), region: v('#sv-region'), email: v('#sv-email'), consent: true
-  });
+  let error = null;
+  try {
+    const result = await supabase.from('survey_responses').insert({
+      travel_frequency: v('#sv-freq'), travel_purpose: v('#sv-purpose'), transport: checked('transport'), problems: checked('problems'),
+      problem_frequency: v('#sv-pfreq'), severity: v('#sv-sev'), story: v('#sv-story'), improvements: checked('improvements'),
+      missing: v('#sv-missing'), age_range: v('#sv-age'), region: v('#sv-region'), email: v('#sv-email'), consent: true
+    });
+    error = result.error;
+  } catch (requestError) {
+    error = requestError;
+  }
   btn.disabled = false;
-  if (error) { console.error('Survey failed:', error); fb.textContent = 'We could not save your survey just now. Please try again in a moment.'; return; }
+  if (error) {
+    console.error('Survey failed:', error);
+    fb.textContent = 'Your survey was NOT confirmed as saved. Please check your connection and try again. (' + (error.code || 'network error') + ')';
+    return;
+  }
   e.target.reset(); fb.textContent = 'Thank you. Your survey has been sent privately to the TravBud team.';
 });
 
