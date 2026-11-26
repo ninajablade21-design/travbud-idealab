@@ -126,7 +126,7 @@ $('#app').innerHTML = `
 </main>
 <footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><button id="footer-team" class="footer-team">Private team access ↗</button></footer>
 <div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Use your authorised team account. Password sign-in works without sending an email; secure email links are available as a backup.</p><div class="team-auth-tabs" role="tablist" aria-label="Team sign-in method"><button type="button" class="team-auth-tab active" id="tab-password" role="tab" aria-selected="true" aria-controls="password-login">Password</button><button type="button" class="team-auth-tab" id="tab-link" role="tab" aria-selected="false" aria-controls="link-login">Email link</button></div><form id="password-login" class="team-auth-form"><label for="password-email">Work email address</label><input id="password-email" type="email" required autocomplete="username" placeholder="name@company.com"><label for="team-password">Password</label><input id="team-password" type="password" required autocomplete="current-password" placeholder="Your team password"><button class="primary" type="submit">Sign in to private inbox <span aria-hidden="true">↗</span></button></form><form id="link-login" class="team-auth-form" hidden><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><button class="primary" type="submit">Email me a secure sign-in link <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-insights" class="admin-insights"></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
-<div class="community-detail" id="community-detail" aria-hidden="true"><div class="community-detail-panel" role="dialog" aria-modal="true" aria-labelledby="community-detail-title"><button type="button" class="community-detail-close" id="community-detail-close" aria-label="Close full response">×</button><p class="eyebrow" id="community-detail-kind">COMMUNITY VOICE</p><h2 id="community-detail-title">Full response</h2><div id="community-detail-content" class="community-detail-content"></div></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
+<div class="community-detail" id="community-detail" aria-hidden="true"><div class="community-detail-panel" role="dialog" aria-modal="true" aria-labelledby="community-detail-title"><button type="button" class="community-detail-close" id="community-detail-close" aria-label="Close full response">×</button><p class="eyebrow" id="community-detail-kind">COMMUNITY VOICE</p><h2 id="community-detail-title">Full response</h2><div id="community-detail-content" class="community-detail-content"></div></div></div><div class="community-detail" id="community-detail" aria-hidden="true"><div class="community-detail-panel" role="dialog" aria-modal="true" aria-labelledby="community-detail-title"><button type="button" class="community-detail-close" id="community-detail-close" aria-label="Close full response">×</button><p class="eyebrow" id="community-detail-kind">COMMUNITY VOICE</p><h2 id="community-detail-title">Full response</h2><div id="community-detail-content" class="community-detail-content"></div></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 
 const form = $('#idea-form');
 $('#idea-details').addEventListener('input', e => $('#char-count').textContent = e.target.value.length + ' / 5000');
@@ -344,28 +344,47 @@ if (supabase) {
 
 
 
-async function loadCommunityIdeas() {
-  const feed = $('#community-feed');
-  if (!supabase) { feed.innerHTML = '<p class="community-loading">Community ideas are temporarily unavailable.</p>'; return; }
-  feed.innerHTML = '<p class="community-loading">Loading community ideas…</p>';
-  try {
-    const { data, error } = await supabase.from('community_ideas')
-      .select('id,created_at,category,title,details,display_name,audience,impact')
-      .order('created_at', { ascending: false }).limit(100);
-    if (error) throw error;
-    if (!data?.length) { feed.innerHTML = '<p class="community-loading">No community ideas yet. Be the first to share one.</p>'; return; }
-    feed.innerHTML = data.map(item => {
-      const category = categories.find(c => c[0] === item.category)?.[1] || item.category || 'Idea';
-      const date = new Date(item.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-      return '<article class="community-card"><div class="community-card-top"><span class="category-tag">' + esc(category) + '</span><time>' + esc(date) + '</time></div><h3>' + esc(item.title) + '</h3><p>' + esc(item.details) + '</p><div class="community-byline">Shared by <b>' + esc(item.display_name || 'Traveller') + '</b></div></article>';
-    }).join('');
-  } catch (error) {
-    console.error('Community feed failed:', error);
-    feed.innerHTML = '<p class="community-loading">Community ideas could not be loaded right now. Please refresh the page.</p>';
-  }
+
+const communityRecords = new Map();
+const surveyLabels = {travel_frequency:'🗓️ Travel frequency',travel_purpose:'🎯 Main travel purpose',transport:'🚆 Transport used',problems:'⚠️ Travel difficulties',problem_frequency:'🔁 Problem frequency',severity:'📍 Impact level',story:'📝 Difficult journey story',improvements:'✨ Improvements wanted',missing:'💭 What travel apps are missing'};
+function openCommunityDetail(kind,id){
+ const item=communityRecords.get(kind+':'+id);if(!item)return;
+ const idea=kind==='idea';
+ $('#community-detail-kind').textContent=idea?'💡 COMMUNITY IDEA':'🧭 TRAVELLER SURVEY';
+ $('#community-detail-title').textContent=idea?item.title:'Traveller survey response';
+ const rows=idea?[['🗂️ Category',categories.find(c=>c[0]===item.category)?.[1]||item.category],['👥 Who benefits',item.audience],['⭐ Importance',item.impact],['📝 Full idea',item.details],['👤 Shared by',item.display_name||'Traveller']]:Object.entries(surveyLabels).map(([k,l])=>[l,item[k]]);
+ $('#community-detail-content').innerHTML=rows.filter(([,v])=>v!=null&&v!==''&&(!Array.isArray(v)||v.length)).map(([l,v])=>'<section class="community-detail-row"><h3>'+esc(l)+'</h3><p>'+esc(Array.isArray(v)?v.join(' · '):String(v))+'</p></section>').join('')+'<p class="community-detail-date">📅 Shared '+esc(new Date(item.created_at).toLocaleString())+'</p>';
+ const modal=$('#community-detail');modal.classList.add('open');modal.setAttribute('aria-hidden','false');$('#community-detail-close').focus();
+}
+function closeCommunityDetail(){const modal=$('#community-detail');modal.classList.remove('open');modal.setAttribute('aria-hidden','true');}
+$('#community-detail-close').addEventListener('click',closeCommunityDetail);
+$('#community-detail').addEventListener('click',e=>{if(e.target.id==='community-detail')closeCommunityDetail();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCommunityDetail();});
+$('#community-feed').addEventListener('click',e=>{const t=e.target.closest('[data-community-kind][data-community-id]');if(t)openCommunityDetail(t.dataset.communityKind,t.dataset.communityId);});
+async function loadCommunityIdeas(){
+ const feed=$('#community-feed');if(!supabase){feed.innerHTML='<p class="community-loading">Community voices are temporarily unavailable.</p>';return;}
+ feed.innerHTML='<p class="community-loading">Loading community voices…</p>';
+ try{
+  const [ir,sr]=await Promise.all([
+   supabase.from('community_ideas').select('id,created_at,category,title,details,display_name,audience,impact').order('created_at',{ascending:false}).limit(100),
+   supabase.from('community_survey_responses').select('id,created_at,travel_frequency,travel_purpose,transport,problems,problem_frequency,severity,story,improvements,missing').order('created_at',{ascending:false}).limit(100)
+  ]);
+  if(ir.error)throw ir.error;if(sr.error)throw sr.error;
+  const ideas=ir.data||[],surveys=sr.data||[];communityRecords.clear();
+  ideas.forEach(x=>communityRecords.set('idea:'+x.id,x));surveys.forEach(x=>communityRecords.set('survey:'+x.id,x));
+  const all=[...ideas.map(item=>({kind:'idea',item})),...surveys.map(item=>({kind:'survey',item}))].sort((a,b)=>new Date(b.item.created_at)-new Date(a.item.created_at));
+  if(!all.length){feed.innerHTML='<p class="community-loading">No community voices yet. Be the first to share. 🌱</p>';return;}
+  feed.innerHTML=all.map(({kind,item})=>{
+   const idea=kind==='idea';const title=idea?item.title:'Traveller survey · '+(item.travel_purpose||'Journey insights');
+   const summary=idea?item.details:[item.travel_frequency,...(item.problems||[]).slice(0,2),item.story].filter(Boolean).join(' · ');
+   const cat=idea?(categories.find(c=>c[0]===item.category)?.[1]||item.category||'Idea'):'🧭 TRAVELLER SURVEY';
+   const date=new Date(item.created_at).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+   const who=idea?(item.display_name||'Traveller'):'Anonymous traveller';
+   return '<article class="community-card community-card-interactive"><div class="community-card-top"><span class="category-tag">'+esc(cat)+'</span><time>'+esc(date)+'</time></div><h3>'+esc(title)+'</h3><p>'+esc(summary||'Open to read this community response.')+'</p><div class="community-byline">Shared by <b>'+esc(who)+'</b></div><button type="button" class="community-read-more" data-community-kind="'+kind+'" data-community-id="'+esc(item.id)+'">Read full '+(idea?'idea':'survey')+' ↗</button></article>';
+  }).join('');
+ }catch(error){console.error('Community feed failed:',error);feed.innerHTML='<p class="community-loading">Community voices could not be loaded. Please refresh the page.</p>';}
 }
 loadCommunityIdeas();
-
 // Traveller survey submit (max 5 improvements enforced here and in the database).
 const checked = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(x => x.value);
 $('#survey-form').addEventListener('change', e => {
