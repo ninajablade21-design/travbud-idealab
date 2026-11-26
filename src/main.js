@@ -208,7 +208,7 @@ $('#mobile-menu-toggle').addEventListener('click', () => {
   $('#mobile-menu-toggle').setAttribute('aria-expanded', String(open));
   $('#mobile-menu-toggle').textContent = open ? '×' : '☰';
 });
-$('#mobile-admin-open').addEventListener('click', openAdmin);
+$('#mobile-admin-open').addEventListener('click', openAdminInNewTab);
 showPage(pageFromHash(location.hash));
 
 const form = $('#idea-form');
@@ -251,6 +251,12 @@ document.querySelectorAll('[data-access]').forEach(control => control.addEventLi
 
 const modal = $('#admin-modal');
 let adminReturnFocus = null;
+function openAdminInNewTab() {
+  const adminUrl = new URL(window.location.href);
+  adminUrl.searchParams.set('admin', '1');
+  adminUrl.hash = '';
+  window.open(adminUrl.toString(), '_blank', 'noopener,noreferrer');
+}
 function openAdmin(event) {
   if (event?.currentTarget instanceof HTMLElement) adminReturnFocus = event.currentTarget;
   modal.inert = false;
@@ -270,8 +276,9 @@ function closeAdmin() {
   modal.setAttribute('aria-hidden', 'true');
   modal.inert = true;
 }
-$('#admin-open').onclick = openAdmin;
-$('#footer-team').onclick = openAdmin;
+$('#admin-open').onclick = openAdminInNewTab;
+$('#footer-team').onclick = openAdminInNewTab;
+if (new URLSearchParams(window.location.search).get('admin') === '1') openAdmin();
 $('#admin-close').onclick = closeAdmin;
 modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
 document.addEventListener('keydown', e => {
