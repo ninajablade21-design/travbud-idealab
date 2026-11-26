@@ -338,11 +338,13 @@ $('#admin-key-login').addEventListener('submit', async e => {
   }
 });
 async function auditModeration() { return; }
+function activateAdminPanel(name) {
+  document.querySelectorAll('[data-admin-tab]').forEach(tab => tab.classList.toggle('active', tab.dataset.adminTab === name));
+  document.querySelectorAll('[data-admin-panel]').forEach(panel => panel.classList.toggle('active', panel.dataset.adminPanel === name));
+  document.querySelector('[data-admin-panel="' + name + '"]')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function bindAdminTabs() {
-  document.querySelectorAll('[data-admin-tab]').forEach(tab => tab.addEventListener('click', () => {
-    document.querySelectorAll('[data-admin-tab]').forEach(x => x.classList.toggle('active', x === tab));
-    document.querySelectorAll('[data-admin-panel]').forEach(x => x.classList.toggle('active', x.dataset.adminPanel === tab.dataset.adminTab));
-  }));
+  document.querySelectorAll('[data-admin-tab]').forEach(tab => tab.addEventListener('click', () => activateAdminPanel(tab.dataset.adminTab)));
 }
 bindAdminTabs();
 function renderModerationCard(r, type) {
@@ -414,14 +416,21 @@ async function loadAdminIdeas() {
   adminExport.ideas = ideas; adminExport.surveys = surveys;
   const counts = ideas.reduce((a, x) => (a[x.status || 'new'] = (a[x.status || 'new'] || 0) + 1, a), {});
   const surveyCounts = surveys.reduce((a, x) => (a[x.moderation_status || 'new'] = (a[x.moderation_status || 'new'] || 0) + 1, a), {});
-  $('#admin-summary').innerHTML = [['Ideas', ideas.length],['Survey responses', surveys.length],['New ideas', counts.new || 0],['New surveys', surveyCounts.new || 0],['All private records', ideas.length + surveys.length],['Admin actions logged', audit.length]].map(([k,v]) => `<div><small>${k}</small><strong>${v}</strong></div>`).join('');
+  $('#admin-summary').innerHTML = [['Ideas', ideas.length, 'ideas'],['Survey responses', surveys.length, 'surveys'],['New ideas', counts.new || 0, 'ideas'],['New surveys', surveyCounts.new || 0, 'surveys'],['All records', ideas.length + surveys.length, 'all'],['Admin actions', audit.length, 'activity']].map(([k,v,target]) => `<button type="button" class="overview-stat" data-overview-go="${target}" aria-label="View ${k}: ${v}"><small>${k}</small><strong>${v}</strong><span>View details →</span></button>`).join('');
   rows.innerHTML = ideas.length ? ideas.map(r => renderModerationCard(r,'idea')).join('') : '<div class="empty-inbox">No ideas have been submitted yet.</div>';
   surveyRows.innerHTML = surveys.length ? surveys.map(r => renderModerationCard(r,'survey')).join('') : '<div class="empty-inbox">No survey responses yet.</div>';
   const combined = [...ideas.map(r => ({...r,_kind:'idea'})), ...surveys.map(r => ({...r,_kind:'survey'}))].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   allRows.innerHTML = combined.length ? combined.map(r => renderModerationCard(r, r._kind)).join('') : '<div class="empty-inbox">No submissions have arrived yet.</div>';
   $('#owner-record-count').textContent = combined.length + ' total records · ' + ideas.length + ' ideas · ' + surveys.length + ' surveys';
   const latest = [...ideas.map(r=>({...r,_kind:'idea'})),...surveys.map(r=>({...r,_kind:'survey'}))].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,8);
-  overview.innerHTML = latest.length ? latest.map(r => `<article class="admin-idea"><span class="category-tag">${r._kind === 'idea' ? 'COMMUNITY IDEA' : 'SURVEY RESPONSE'}</span><h3>${esc(r._kind === 'idea' ? r.title : (r.travel_purpose || 'Traveller survey'))}</h3><time>${esc(new Date(r.created_at).toLocaleString())}</time><p>${esc(r._kind === 'idea' ? r.details : (r.story || (r.problems || []).join(' · ') || 'Survey response'))}</p></article>`).join('') : '<p class="loading">No activity yet.</p>';
+  overview.innerHTML = latest.length ? latest.map(r => `<article class="admin-idea overview-latest"><span class="category-tag">${r._kind === 'idea' ? 'COMMUNITY IDEA' : 'SURVEY RESPONSE'}</span><h3>${esc(r._kind === 'idea' ? r.title : (r.travel_purpose || 'Traveller survey'))}</h3><time>${esc(new Date(r.created_at).toLocaleString())}</time><p>${esc(r._kind === 'idea' ? r.details : (r.story || (r.problems || []).join(' · ') || 'Survey response'))}</p><button type="button" class="outline-btn" data-overview-record="${esc(r._kind)}:${esc(r.id)}">Open full record →</button></article>`).join('') : '<p class="loading">No activity yet.</p>';
+  $('#admin-summary').querySelectorAll('[data-overview-go]').forEach(button => button.addEventListener('click', () => activateAdminPanel(button.dataset.overviewGo)));
+  overview.querySelectorAll('[data-overview-record]').forEach(button => button.addEventListener('click', () => {
+    const [kind,id] = button.dataset.overviewRecord.split(':');
+    activateAdminPanel(kind === 'idea' ? 'ideas' : 'surveys');
+    const target = document.querySelector(`[data-admin-panel="${kind === 'idea' ? 'ideas' : 'surveys'}"] [data-record-id="${CSS.escape(id)}"]`);
+    if (target) { const details = target.querySelector('details.admin-full-record'); if (details) details.open = true; target.scrollIntoView({behavior:'smooth',block:'center'}); target.classList.add('overview-record-focus'); setTimeout(()=>target.classList.remove('overview-record-focus'),1800); }
+  }));
   auditRows.innerHTML = audit.length ? audit.map(item => `<article class="admin-idea"><div class="admin-idea-top"><span class="category-tag">${esc(item.record_type || 'ADMIN')}</span><time>${esc(new Date(item.created_at).toLocaleString())}</time></div><h3>${esc(item.action.replaceAll('_',' '))}</h3><p>Record: ${esc(item.record_id)} · Details: ${esc(JSON.stringify(item.details || {}))}</p></article>`).join('') : '<div class="empty-inbox">No admin actions have been recorded yet.</div>';
   await bindModeration(rows, ideas, 'idea'); await bindModeration(surveyRows, surveys, 'survey');
   await bindModeration(allRows, ideas, 'idea'); await bindModeration(allRows, surveys, 'survey');
