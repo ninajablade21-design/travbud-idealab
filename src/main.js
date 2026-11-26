@@ -140,7 +140,7 @@ $('#app').innerHTML = `
 </nav>
 <section class="admin-panel active" data-admin-panel="overview"><div class="admin-summary" id="admin-summary"></div><h3>Latest activity</h3><div id="admin-overview-rows" class="admin-rows"></div></section>
 <section class="admin-panel" data-admin-panel="ideas"><div class="admin-panel-heading"><div><h3>Community ideas</h3><p>Review, update, export or permanently remove private submissions.</p></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div></div><div id="admin-rows" class="admin-rows"></div></section>
-<section class="admin-panel" data-admin-panel="surveys"><div class="admin-panel-heading"><div><h3>Survey responses</h3><p>Private answers and moderation controls for authorised administrators.</p></div></div><div id="admin-survey-rows" class="admin-rows"></div></section>
+<section class="admin-panel" data-admin-panel="surveys"><div class="admin-panel-heading"><div><h3>Survey responses</h3><p>Every answer, optional contact field and moderation note is available in each full record.</p></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export all records CSV</button><button class="outline-btn" data-export="json">Export all records JSON</button></div></div><div id="admin-survey-rows" class="admin-rows"></div></section>
 <section class="admin-panel" data-admin-panel="insights"><div id="admin-insights" class="admin-insights"></div></section>
 <section class="admin-panel" data-admin-panel="activity"><div class="admin-panel-heading"><div><h3>Admin activity log</h3><p>Recorded changes made in this private workspace.</p></div></div><div id="admin-audit-rows" class="admin-rows"></div></section>
 <section class="admin-panel" data-admin-panel="settings"><h3>Admin settings</h3><p>Only authorised administrator accounts can access this workspace. Never share credentials or access keys.</p><p>Moderation actions are recorded in the private audit log.</p><button id="admin-logout" class="outline-btn">Sign out</button></section>
@@ -380,7 +380,7 @@ function renderModerationCard(r, type) {
     <div class="admin-byline"><b>${esc(who)}</b><span>${esc(idea ? (r.email || 'No follow-up email') : (r.email || 'Email private / not provided'))}</span></div>
     <details class="admin-full-record"><summary>View complete record · all submitted fields</summary><pre>${esc(fullRecord)}</pre></details>
     <div class="moderation-controls">
-      <label>Moderation <select data-moderation-status><option value="new">New</option><option value="reviewing">Reviewing</option><option value="planned">Planned</option><option value="resolved">Resolved</option><option value="declined">Declined</option></select></label>
+      <label>Moderation <select data-moderation-status><option value="new">New</option><option value="reviewing">Reviewing</option>${idea ? '<option value="planned">Planned</option>' : ''}<option value="resolved">Resolved</option><option value="declined">Declined</option></select></label>
       <label class="moderation-note-label">Private note <input data-moderation-note maxlength="1000" placeholder="Internal note (never public)" value="${esc(r.moderator_note || '')}"></label>
       <span class="moderation-private-note">🔒 Private to authorised admins</span>
       ${idea ? '<button type="button" class="outline-btn" data-edit-record>Edit text</button>' : ''}
