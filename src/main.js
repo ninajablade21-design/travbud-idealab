@@ -25,7 +25,7 @@ const chips = (name, list) => `<div class="chips">${list.map(v => `<label class=
 $('#app').innerHTML = `
 <header class="site-header">
   <a class="brand" href="#top" aria-label="TravBud IdeaLab home"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a>
-  <nav aria-label="Main navigation"><a href="#why">Why IdeaLab</a><a href="#focus">What we're exploring</a><a href="#community">Community Voices</a><a href="#survey">Survey</a><a href="#submit">Share an idea</a></nav>
+  <nav aria-label="Main navigation"><a href="#why">✨ Why IdeaLab</a><a href="#focus">🧭 Explore</a><a href="#community">💬 Community</a><a href="#survey">📋 Survey</a><a href="#submit">💡 Share an idea</a></nav>
   <button class="team-link" id="admin-open">Team sign in <span>↗</span></button>
 </header>
 <main id="top">
@@ -34,7 +34,7 @@ $('#app').innerHTML = `
       <p class="eyebrow"><span class="eyebrow-dot"></span> THE TRAVBUD INNOVATION LAB</p>
       <h1>Travel has a<br>better <em>way.</em></h1>
       <p class="hero-lead">We're shaping TravBud before launch. Tell us what makes travelling difficult, what you wish existed, and what would make your next journey feel easier.</p>
-      <a class="primary" href="#submit">Share your idea <span>↗</span></a>
+      <a class="primary" href="#submit">💡 Share your idea <span>↗</span></a>
       <div class="privacy-inline"><span class="lock">✳</span><span><b>Share ideas with the community</b><br>Your idea appears publicly after submission. Contact details stay private.</span></div>
     </div>
     <div class="hero-art" aria-label="Abstract illustration of connected travel routes">
@@ -47,11 +47,11 @@ $('#app').innerHTML = `
   <div class="ticker"><span>REAL TRAVEL PROBLEMS</span><b>✳</b><span>USEFUL IDEAS</span><b>✳</b><span>ACCESS FOR EVERYONE</span><b>✳</b><span>BETTER JOURNEYS</span><b>✳</b><span>REAL TRAVEL PROBLEMS</span></div>
   <section id="community" class="community-section section-shell"><div class="community-heading"><div><p class="eyebrow">COMMUNITY VOICES</p><h2>Ideas from <em>travellers.</em></h2></div><p>✨ New ideas and opted-in survey responses appear here. Tap any card to read the full submission. Contact details, age and region stay private.</p></div><div id="community-feed" class="community-feed" aria-live="polite"><p class="community-loading">Loading community ideas…</p></div></section>
   <section id="why" class="intro section-shell">
-    <div><p class="eyebrow">01 / WHY IDEALAB EXISTS</p><h2>A private place to<br><em>shape what's next.</em></h2></div>
+    <div><p class="eyebrow">💫 01 / WHY IDEALAB EXISTS</p><h2>A private place to<br><em>shape what's next.</em></h2></div>
     <div class="intro-copy"><p>TravBud is still being shaped. Before we build more, we want to understand the real-world challenges people face when planning, booking and taking trips.</p><p>IdeaLab is a private channel between travellers and the people building TravBud. Share the small frustrations, big barriers and ambitious ideas. Our team will read every submission and use the patterns to guide what we build.</p><div class="principle"><span>01</span> Listen before we build <span>02</span> Design for real people</div></div>
   </section>
   <section id="focus" class="focus-section">
-    <div class="section-shell"><p class="eyebrow">02 / WHAT WE WANT TO UNDERSTAND</p><div class="focus-heading"><h2>Where could travel<br>work <em>better?</em></h2><p>You don't need a perfect solution. Tell us what gets in your way — we'll explore the possibilities together.</p></div>
+    <div class="section-shell"><p class="eyebrow">🧭 02 / WHAT WE WANT TO UNDERSTAND</p><div class="focus-heading"><h2>Where could travel<br>work <em>better?</em></h2><p>You don't need a perfect solution. Tell us what gets in your way — we'll explore the possibilities together.</p></div>
       <div class="focus-grid">
         <article class="focus-card"><span class="focus-num">01</span><div class="focus-icon">↗</div><h3>Planning without friction</h3><p>What's confusing, time-consuming or missing when comparing routes and planning a trip?</p><span class="focus-tag">BOOKING & PLANNING</span></article>
         <article class="focus-card"><span class="focus-num">02</span><div class="focus-icon">⇄</div><h3>Connected journeys</h3><p>Where do transfers, first-mile and last-mile connections make a journey harder?</p><span class="focus-tag">MOBILITY & CONNECTIONS</span></article>
@@ -64,7 +64,7 @@ $('#app').innerHTML = `
   </section>
   <section id="films" class="films-section">
     <div class="section-shell">
-      <p class="eyebrow">02 / SEE THE VISION</p>
+      <p class="eyebrow">🎬 02 / SEE THE VISION</p>
       <div class="films-heading"><h2>Ideas become<br><em>real journeys.</em></h2><p>Watch the TravBud journey concept and the campaign film. Both videos are served from the site's own assets.</p></div>
       <div class="films-grid">
         <article class="film-card film-feature">
@@ -79,12 +79,12 @@ $('#app').innerHTML = `
     </div>
   </section>
   <section class="process section-shell">
-    <div><p class="eyebrow">03 / WHAT HAPPENS NEXT</p><h2>Your idea goes<br>somewhere <em>useful.</em></h2></div>
+    <div><p class="eyebrow">🚀 03 / WHAT HAPPENS NEXT</p><h2>Your idea goes<br>somewhere <em>useful.</em></h2></div>
     <div class="process-steps"><div class="step"><span>01</span><div><h3>You share</h3><p>Describe the problem, idea or experience in your own words.</p></div></div><div class="step"><span>02</span><div><h3>Our team listens</h3><p>Your submission goes into a private team inbox for review and discussion.</p></div></div><div class="step"><span>03</span><div><h3>We look for patterns</h3><p>We group related needs and consider what could make the biggest difference.</p></div></div><div class="step"><span>04</span><div><h3>TravBud gets better</h3><p>Insights help shape priorities and future product decisions. Not every idea can be promised, but every idea can inform the conversation.</p></div></div></div>
   </section>
   <section id="survey" class="submit-section">
     <div class="submit-shell">
-      <div class="submit-intro"><p class="eyebrow">03 / TRAVELLER SURVEY</p><h2>Tell us about<br>your <em>journeys.</em></h2><p>⏱️ Takes 3 to 5 minutes. Your answers appear in Community Voices after you agree to public sharing below. Email, age and region stay private.</p></div>
+      <div class="submit-intro"><p class="eyebrow">📋 03 / TRAVELLER SURVEY</p><h2>Tell us about<br>your <em>journeys.</em></h2><p>⏱️ Takes 3 to 5 minutes. Your answers appear in Community Voices after you agree to public sharing below. Email, age and region stay private.</p></div>
       <form id="survey-form" class="idea-form">
         <div class="form-heading"><span>🧭 TRAVELLER SURVEY</span><span>COMMUNITY + PRIVATE DETAILS</span></div>
         <label for="sv-freq">How often do you travel?</label><select id="sv-freq">${opts(['Daily / commuting','Weekly','Monthly','Few times a year','Rarely'],'Choose one')}</select>
@@ -106,7 +106,7 @@ $('#app').innerHTML = `
   </section>
   <section id="submit" class="submit-section">
     <div class="submit-shell">
-      <div class="submit-intro"><p class="eyebrow">SHARE AN IDEA</p><h2>Help shape<br><em>better journeys.</em></h2><p>Share a challenge you've faced or an idea that could make travelling simpler, more connected or more inclusive.</p><div class="private-card"><span>✳</span><div><b>Community sharing</b><small>Your first name, idea title, category and idea text will be visible to everyone after you submit. Your email and device details stay private. Do not include personal or sensitive information in your idea.</small></div></div></div>
+      <div class="submit-intro"><p class="eyebrow">💡 SHARE AN IDEA</p><h2>Help shape<br><em>better journeys.</em></h2><p>Share a challenge you've faced or an idea that could make travelling simpler, more connected or more inclusive.</p><div class="private-card"><span>✳</span><div><b>Community sharing</b><small>Your first name, idea title, category and idea text will be visible to everyone after you submit. Your email and device details stay private. Do not include personal or sensitive information in your idea.</small></div></div></div>
       <form id="idea-form" class="idea-form">
         <div class="form-heading"><span>💡 IDEA SUBMISSION</span><span>COMMUNITY VOICES · 01</span></div>
         <label for="submitter-name">Your name <sup>*</sup></label><input id="submitter-name" name="submitter_name" required minlength="2" maxlength="80" autocomplete="name" placeholder="How should we address you?">
@@ -122,7 +122,7 @@ $('#app').innerHTML = `
       </form>
     </div>
   </section>
-  <section class="closing section-shell"><p class="eyebrow">TRAVBUD IDEALAB</p><h2>Better journeys don't<br>happen by <em>accident.</em></h2><p>They happen when we listen to the people taking them.</p><a href="#submit" class="text-link">Add your voice <span>↗</span></a></section>
+  <section class="closing section-shell"><p class="eyebrow">🌍 TRAVBUD IDEALAB</p><h2>Better journeys don't<br>happen by <em>accident.</em></h2><p>They happen when we listen to the people taking them.</p><a href="#submit" class="text-link">Add your voice <span>↗</span></a></section>
 </main>
 <footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><button id="footer-team" class="footer-team">Private team access ↗</button></footer>
 <div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Use your authorised team account. Password sign-in works without sending an email; secure email links are available as a backup.</p><div class="team-auth-tabs" role="tablist" aria-label="Team sign-in method"><button type="button" class="team-auth-tab active" id="tab-password" role="tab" aria-selected="true" aria-controls="password-login">Password</button><button type="button" class="team-auth-tab" id="tab-link" role="tab" aria-selected="false" aria-controls="link-login">Email link</button></div><form id="password-login" class="team-auth-form"><label for="password-email">Work email address</label><input id="password-email" type="email" required autocomplete="username" placeholder="name@company.com"><label for="team-password">Password</label><input id="team-password" type="password" required autocomplete="current-password" placeholder="Your team password"><button class="primary" type="submit">Sign in to private inbox <span aria-hidden="true">↗</span></button></form><form id="link-login" class="team-auth-form" hidden><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><button class="primary" type="submit">Email me a secure sign-in link <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-insights" class="admin-insights"></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
