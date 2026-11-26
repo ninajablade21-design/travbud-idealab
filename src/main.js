@@ -435,30 +435,7 @@ $('#community-detail-close').addEventListener('click',closeCommunityDetail);
 $('#community-detail').addEventListener('click',e=>{if(e.target.id==='community-detail')closeCommunityDetail();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCommunityDetail();});
 $('#community-feed').addEventListener('click',e=>{const t=e.target.closest('[data-community-kind][data-community-id]');if(t)openCommunityDetail(t.dataset.communityKind,t.dataset.communityId);});
-async function loadCommunityIdeas(){
- const feed=$('#community-feed');if(!supabase){feed.innerHTML='<p class="community-loading">Community voices are temporarily unavailable.</p>';return;}
- feed.innerHTML='<p class="community-loading">Loading community voices…</p>';
- try{
-  const [ir,sr]=await Promise.all([
-   supabase.from('community_ideas').select('id,created_at,category,title,details,display_name,audience,impact').order('created_at',{ascending:false}).limit(100),
-   supabase.from('community_survey_responses').select('id,created_at,travel_frequency,travel_purpose,transport,problems,problem_frequency,severity,story,improvements,missing,age_range,region').order('created_at',{ascending:false}).limit(100)
-  ]);
-  if(ir.error)throw ir.error;if(sr.error)throw sr.error;
-  const ideas=ir.data||[],surveys=sr.data||[];communityRecords.clear();
-  ideas.forEach(x=>communityRecords.set('idea:'+x.id,x));surveys.forEach(x=>communityRecords.set('survey:'+x.id,x));
-  const all=[...ideas.map(item=>({kind:'idea',item})),...surveys.map(item=>({kind:'survey',item}))].sort((a,b)=>new Date(b.item.created_at)-new Date(a.item.created_at));
-  if(!all.length){feed.innerHTML='<p class="community-loading">No community voices yet. Be the first to share. 🌱</p>';return;}
-  feed.innerHTML=all.map(({kind,item})=>{
-   const idea=kind==='idea';const title=idea?item.title:'Traveller survey · '+(item.travel_purpose||'Journey insights');
-   const summary=idea?item.details:[item.travel_frequency,...(item.problems||[]).slice(0,2),item.story].filter(Boolean).join(' · ');
-   const cat=idea?(categories.find(c=>c[0]===item.category)?.[1]||item.category||'Idea'):'🧭 TRAVELLER SURVEY';
-   const date=new Date(item.created_at).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
-   const who=idea?(item.display_name||'Traveller'):'Anonymous traveller';
-   return '<article class="community-card community-card-interactive"><div class="community-card-top"><span class="category-tag">'+esc(cat)+'</span><time>'+esc(date)+'</time></div><h3>'+esc(title)+'</h3><p>'+esc(summary||'Open to read this community response.')+'</p><div class="community-byline">Shared by <b>'+esc(who)+'</b></div><button type="button" class="community-read-more" data-community-kind="'+kind+'" data-community-id="'+esc(item.id)+'">Read full '+(idea?'idea':'survey')+' ↗</button></article>';
-  }).join('');
- }catch(error){console.error('Community feed failed:',error);feed.innerHTML='<p class="community-loading">Community voices could not be loaded. Please refresh the page.</p>';}
-}
-loadCommunityIdeas();
+async function loadCommunityIdeas(){ return; }
 // Traveller survey submit (max 5 improvements enforced here and in the database).
 const checked = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(x => x.value);
 $('#survey-form').addEventListener('change', e => {
