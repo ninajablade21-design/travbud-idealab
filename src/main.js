@@ -276,13 +276,41 @@ modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && modal.classList.contains('open')) closeAdmin();
 });
-let activeAdminKey = '';
+const ADMIN_API = 'https://rsnmwoxawgmpebiusuqr.supabase.co/functions/v1/idealab-admin';
+let activeAdminSession = '';
+async function callAdminApi(action, payload = {}) {
+  if (!supabase || !activeAdminSession) return { data: null, error: new Error('Admin session is locked.') };
+  try {
+    const response = await fetch(ADMIN_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: env.VITE_SUPABASE_PUBLISHABLE_KEY, 'x-admin-session': activeAdminSession },
+      body: JSON.stringify({ action, ...payload }),
+      cache: 'no-store'
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) return { data: null, error: new Error(data.error || 'Admin request failed (' + response.status + ').') };
+    return { data, error: null };
+  } catch {
+    return { data: null, error: new Error('Could not reach the secure admin service.') };
+  }
+}
 async function callAdminRpc(name, params = {}) {
-  if (!supabase || !activeAdminKey) return { data: null, error: new Error('Admin session is locked.') };
-  return supabase.rpc(name, { ...params, p_key: activeAdminKey });
+  const map = {
+    idealab_admin_list: ['list', {}],
+    idealab_admin_update: ['update', { type: params.p_type, id: params.p_id, status: params.p_status, note: params.p_note }],
+    idealab_admin_edit: ['edit', { type: 'idea', id: params.p_id, title: params.p_title, details: params.p_details }],
+    idealab_admin_delete: ['delete', { type: params.p_type, id: params.p_id }]
+  };
+  const entry = map[name];
+  if (!entry) return { data: null, error: new Error('Unsupported admin operation.') };
+  return callAdminApi(entry[0], entry[1]);
 }
 function lockAdmin(message = 'You have signed out.') {
-  activeAdminKey = '';
+  const previousSession = activeAdminSession;
+  activeAdminSession = '';
+  if (previousSession && supabase) {
+    fetch(ADMIN_API, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: env.VITE_SUPABASE_PUBLISHABLE_KEY, 'x-admin-session': previousSession }, body: JSON.stringify({ action: 'logout' }), keepalive: true }).catch(() => {});
+  }
   $('#admin-dashboard').hidden = true;
   $('#admin-key-login').hidden = false;
   $('#admin-access-key').value = '';
@@ -295,15 +323,25 @@ $('#admin-key-login').addEventListener('submit', async e => {
   if (!supabase || key.length < 32) { $('#admin-message').textContent = 'Enter a valid Admin Access Key.'; return; }
   button.disabled = true; button.textContent = 'Verifying key…';
   try {
-    const { data, error } = await supabase.rpc('idealab_admin_verify', { p_key: key });
-    if (error || data !== true) { activeAdminKey = ''; $('#admin-message').textContent = 'Access key is incorrect or temporarily rate-limited.'; return; }
-    activeAdminKey = key;
+    const response = await fetch(ADMIN_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: env.VITE_SUPABASE_PUBLISHABLE_KEY },
+      body: JSON.stringify({ action: 'login', key }),
+      cache: 'no-store'
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.session) {
+      activeAdminSession = '';
+      $('#admin-message').textContent = data.error || 'Access key is incorrect or temporarily rate-limited.';
+      return;
+    }
+    activeAdminSession = data.session;
     $('#admin-key-login').hidden = true;
     $('#admin-dashboard').hidden = false;
     $('#admin-message').textContent = 'Access granted. Loading private submissions…';
     await loadAdminIdeas();
-  } catch (error) {
-    $('#admin-message').textContent = 'Could not verify access. Check your connection and try again.';
+  } catch {
+    $('#admin-message').textContent = 'Could not reach the secure admin service. Check your connection and try again.';
   } finally {
     button.disabled = false; button.textContent = 'Unlock private inbox ↗';
   }
