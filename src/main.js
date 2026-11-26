@@ -84,9 +84,9 @@ $('#app').innerHTML = `
   </section>
   <section id="survey" class="submit-section">
     <div class="submit-shell">
-      <div class="submit-intro"><p class="eyebrow">📋 03 / TRAVELLER SURVEY</p><h2>Tell us about<br>your <em>journeys.</em></h2><p>⏱️ Takes 3 to 5 minutes. Your answers appear in Community Voices after you agree to public sharing below. Email, age and region stay private.</p></div>
+      <div class="submit-intro"><p class="eyebrow">📋 03 / TRAVELLER SURVEY</p><h2>Tell us about<br>your <em>journeys.</em></h2><p>⏱️ Takes 3 to 5 minutes. Every submitted survey answer is published in Community Voices for everyone to read. Your email address is never shown.</p></div>
       <form id="survey-form" class="idea-form">
-        <div class="form-heading"><span>🧭 TRAVELLER SURVEY</span><span>COMMUNITY + PRIVATE DETAILS</span></div>
+        <div class="form-heading"><span>🧭 TRAVELLER SURVEY</span><span>🌍 PUBLIC COMMUNITY RESPONSES</span></div>
         <label for="sv-freq">How often do you travel?</label><select id="sv-freq">${opts(['Daily / commuting','Weekly','Monthly','Few times a year','Rarely'],'Choose one')}</select>
         <label for="sv-purpose">Main reason for travel</label><select id="sv-purpose">${opts(['Work / business','Education','Tourism / holidays','Family / personal','Medical','Other'],'Choose one')}</select>
         <label>Transport you use most <span class="optional">SELECT ALL THAT APPLY</span></label>${chips('transport', transports)}
@@ -99,7 +99,7 @@ $('#app').innerHTML = `
         <label for="sv-age">Age range <span class="optional">OPTIONAL</span></label><select id="sv-age">${opts(['Under 18','18–24','25–34','35–44','45–59','60+'],'Prefer not to say')}</select>
         <label for="sv-region">Country / region <span class="optional">OPTIONAL</span></label><input id="sv-region" maxlength="80" placeholder="e.g. India, Kerala">
         <label for="sv-email">Email <span class="optional">OPTIONAL · FOR FOLLOW-UP</span></label><input id="sv-email" type="email" maxlength="254" placeholder="you@example.com">
-        <label class="consent-row required-consent"><input type="checkbox" id="sv-consent" required><span><b>I agree my survey may be stored and reviewed. <sup>*</sup></b><small>Your email, age range and region are kept private.</small></span></label><label class="consent-row required-consent"><input type="checkbox" id="sv-community-consent"><span><b>🌍 I agree to publish my survey answers in Community Voices. <sup>*</sup></b><small>Visitors can read your answers, including your written journey story and suggestions. Email, age range and region are never published. Do not include names, contact details, exact addresses, passwords, payment details or sensitive personal information. If you leave this unchecked, your survey is saved privately for the TravBud team.</small></span></label>
+        <label class="consent-row required-consent"><input type="checkbox" id="sv-consent" required><span><b>🌍 I understand that every answer I submit will be public in Community Voices. <sup>*</sup></b><small>All selected options, age range, country/region, written stories and suggestions will be visible to anyone visiting the website. Your email address is never published. Do not include names, contact details, exact addresses, passwords, payment details or sensitive personal information.</small></span></label>
         <button class="primary submit-button" type="submit">Send survey <span>↗</span></button><p class="form-feedback" id="sv-feedback" role="status" aria-live="polite"></p>
       </form>
     </div>
@@ -346,7 +346,7 @@ if (supabase) {
 
 
 const communityRecords = new Map();
-const surveyLabels = {travel_frequency:'🗓️ Travel frequency',travel_purpose:'🎯 Main travel purpose',transport:'🚆 Transport used',problems:'⚠️ Travel difficulties',problem_frequency:'🔁 Problem frequency',severity:'📍 Impact level',story:'📝 Difficult journey story',improvements:'✨ Improvements wanted',missing:'💭 What travel apps are missing'};
+const surveyLabels = {travel_frequency:'🗓️ Travel frequency',travel_purpose:'🎯 Main travel purpose',transport:'🚆 Transport used',problems:'⚠️ Travel difficulties',problem_frequency:'🔁 Problem frequency',severity:'📍 Impact level',story:'📝 Difficult journey story',improvements:'✨ Improvements wanted',missing:'💭 What travel apps are missing',age_range:'👥 Age range',region:'📍 Country / region'};
 function openCommunityDetail(kind,id){
  const item=communityRecords.get(kind+':'+id);if(!item)return;
  const idea=kind==='idea';
@@ -367,7 +367,7 @@ async function loadCommunityIdeas(){
  try{
   const [ir,sr]=await Promise.all([
    supabase.from('community_ideas').select('id,created_at,category,title,details,display_name,audience,impact').order('created_at',{ascending:false}).limit(100),
-   supabase.from('community_survey_responses').select('id,created_at,travel_frequency,travel_purpose,transport,problems,problem_frequency,severity,story,improvements,missing').order('created_at',{ascending:false}).limit(100)
+   supabase.from('community_survey_responses').select('id,created_at,travel_frequency,travel_purpose,transport,problems,problem_frequency,severity,story,improvements,missing,age_range,region').order('created_at',{ascending:false}).limit(100)
   ]);
   if(ir.error)throw ir.error;if(sr.error)throw sr.error;
   const ideas=ir.data||[],surveys=sr.data||[];communityRecords.clear();
@@ -401,7 +401,7 @@ $('#survey-form').addEventListener('submit', async e => {
     const result = await supabase.from('survey_responses').insert({
       travel_frequency: v('#sv-freq'), travel_purpose: v('#sv-purpose'), transport: checked('transport'), problems: checked('problems'),
       problem_frequency: v('#sv-pfreq'), severity: v('#sv-sev'), story: v('#sv-story'), improvements: checked('improvements'),
-      missing: v('#sv-missing'), age_range: v('#sv-age'), region: v('#sv-region'), email: v('#sv-email'), consent: true, community_visible: $('#sv-community-consent').checked
+      missing: v('#sv-missing'), age_range: v('#sv-age'), region: v('#sv-region'), email: v('#sv-email'), consent: $('#sv-consent').checked, community_visible: true
     });
     error = result.error;
   } catch (requestError) {
@@ -413,7 +413,7 @@ $('#survey-form').addEventListener('submit', async e => {
     fb.textContent = 'Your survey was NOT confirmed as saved. Please check your connection and try again. (' + (error.code || 'network error') + ')';
     return;
   }
-  const sharedPublicly = $('#sv-community-consent').checked; e.target.reset(); await loadCommunityIdeas(); fb.textContent = sharedPublicly ? '🎉 Your survey is saved and visible in Community Voices. Email, age and region remain private.' : '✅ Your survey is saved privately for the TravBud team.';
+  e.target.reset(); await loadCommunityIdeas(); fb.textContent = '🌍 Your survey is saved and published in Community Voices for everyone to read. Your email address remains private.';
 });
 
 // Admin insights + export (reads are blocked by RLS for non-admins).
