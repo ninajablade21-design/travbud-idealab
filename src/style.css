@@ -425,3 +425,27 @@ button,input,textarea,select{
  .share-idea-arrow{font-size:25px}
 }
 @media(prefers-reduced-motion:reduce){.share-idea-cta{transition:none}.share-idea-cta:hover{transform:none}}
+
+
+/* TravBud IdeaLab refreshed admin workspace and ambient route background */
+body{position:relative;isolation:isolate}
+body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.38;background:
+ radial-gradient(ellipse at 12% 18%,#3dd5c51b,transparent 32%),
+ radial-gradient(ellipse at 88% 72%,#669cff16,transparent 34%),
+ linear-gradient(120deg,transparent 48%,#7de4dc08 49%,transparent 50%);
+ background-size:100% 100%,100% 100%,90px 90px;animation:travbudAmbient 24s ease-in-out infinite alternate}
+@keyframes travbudAmbient{from{transform:translate3d(-1%,0,0) scale(1)}to{transform:translate3d(1%,1%,0) scale(1.035)}}
+.admin-tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 0 18px;margin:10px 0 20px;border-bottom:1px solid #ffffff20;scrollbar-width:thin}
+.admin-tab{flex:0 0 auto;border:1px solid #ffffff24;background:#ffffff08;color:#d4e2e8;padding:11px 15px;border-radius:9px;font-weight:750;cursor:pointer}
+.admin-tab.active{background:#78e2d5;color:#071522;border-color:#78e2d5}
+.admin-panel{display:none}.admin-panel.active{display:block}
+.admin-panel-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.admin-panel-heading h3,.admin-panel>h3{margin:10px 0 4px;font-size:20px}
+.admin-panel-heading p,.admin-panel>p{color:#aabac4;font-size:13px;line-height:1.6;margin:0 0 16px}
+.moderation-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:end;margin-top:18px;padding-top:16px;border-top:1px solid #ffffff1c}
+.moderation-controls label{display:grid;gap:6px;color:#b7c9d2;font-size:12px;font-weight:700}
+.moderation-controls input:not([type=checkbox]),.moderation-controls select{width:100%;min-width:0;padding:10px 12px;border:1px solid #ffffff2c;border-radius:8px;background:#091927;color:#f1f6f8;font:inherit}
+.moderation-controls .moderation-visible{display:flex;align-items:center;gap:9px;min-height:40px}
+.danger-btn{border:1px solid #e78d8d77;background:#b7353520;color:#ffb8b8;padding:10px 13px;border-radius:8px;font-weight:750;cursor:pointer}
+@media(max-width:650px){.moderation-controls{grid-template-columns:1fr}.admin-panel-heading .admin-export{width:100%}.admin-panel-heading .admin-export button{flex:1}}
+@media(prefers-reduced-motion:reduce){body:before{animation:none}}
