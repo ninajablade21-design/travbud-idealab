@@ -125,7 +125,20 @@ $('#app').innerHTML = `
   <section class="closing section-shell"><p class="eyebrow">🌍 TRAVBUD IDEALAB</p><h2>Better journeys don't<br>happen by <em>accident.</em></h2><p>They happen when we listen to the people taking them.</p><a href="#submit" class="text-link">Add your voice <span>↗</span></a></section>
 </main>
 <footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><button id="footer-team" class="footer-team">Private team access ↗</button></footer>
-<div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Use your authorised team account. Password sign-in works without sending an email; secure email links are available as a backup.</p><div class="team-auth-tabs" role="tablist" aria-label="Team sign-in method"><button type="button" class="team-auth-tab active" id="tab-password" role="tab" aria-selected="true" aria-controls="password-login">Password</button><button type="button" class="team-auth-tab" id="tab-link" role="tab" aria-selected="false" aria-controls="link-login">Email link</button></div><form id="password-login" class="team-auth-form"><label for="password-email">Work email address</label><input id="password-email" type="email" required autocomplete="username" placeholder="name@company.com"><label for="team-password">Password</label><input id="team-password" type="password" required autocomplete="current-password" placeholder="Your team password"><button class="primary" type="submit">Sign in to private inbox <span aria-hidden="true">↗</span></button></form><form id="link-login" class="team-auth-form" hidden><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><button class="primary" type="submit">Email me a secure sign-in link <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden><div class="admin-summary" id="admin-summary"></div><div id="admin-insights" class="admin-insights"></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div><div id="admin-rows" class="admin-rows"></div><button id="admin-logout" class="outline-btn">Sign out</button></div></div></div>
+<div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Use your authorised team account. Password sign-in works without sending an email; secure email links are available as a backup.</p><div class="team-auth-tabs" role="tablist" aria-label="Team sign-in method"><button type="button" class="team-auth-tab active" id="tab-password" role="tab" aria-selected="true" aria-controls="password-login">Password</button><button type="button" class="team-auth-tab" id="tab-link" role="tab" aria-selected="false" aria-controls="link-login">Email link</button></div><form id="password-login" class="team-auth-form"><label for="password-email">Work email address</label><input id="password-email" type="email" required autocomplete="username" placeholder="name@company.com"><label for="team-password">Password</label><input id="team-password" type="password" required autocomplete="current-password" placeholder="Your team password"><button class="primary" type="submit">Sign in to private inbox <span aria-hidden="true">↗</span></button></form><form id="link-login" class="team-auth-form" hidden><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><button class="primary" type="submit">Email me a secure sign-in link <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden>
+<nav class="admin-tabs" aria-label="Admin dashboard sections">
+<button class="admin-tab active" data-admin-tab="overview">Overview</button>
+<button class="admin-tab" data-admin-tab="ideas">Community ideas</button>
+<button class="admin-tab" data-admin-tab="surveys">Survey responses</button>
+<button class="admin-tab" data-admin-tab="insights">Reports & insights</button>
+<button class="admin-tab" data-admin-tab="settings">Admin settings</button>
+</nav>
+<section class="admin-panel active" data-admin-panel="overview"><div class="admin-summary" id="admin-summary"></div><h3>Latest activity</h3><div id="admin-overview-rows" class="admin-rows"></div></section>
+<section class="admin-panel" data-admin-panel="ideas"><div class="admin-panel-heading"><div><h3>Community ideas</h3><p>Edit, review, hide or remove public submissions.</p></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div></div><div id="admin-rows" class="admin-rows"></div></section>
+<section class="admin-panel" data-admin-panel="surveys"><div class="admin-panel-heading"><div><h3>Survey responses</h3><p>Private answers and moderation controls. Contact details are never displayed in the community.</p></div></div><div id="admin-survey-rows" class="admin-rows"></div></section>
+<section class="admin-panel" data-admin-panel="insights"><div id="admin-insights" class="admin-insights"></div></section>
+<section class="admin-panel" data-admin-panel="settings"><h3>Admin settings</h3><p>Team access is controlled by the existing private admin allowlist. Do not share access keys or credentials in the public website.</p><p>Moderation actions are recorded in the private audit log.</p><button id="admin-logout" class="outline-btn">Sign out</button></section>
+</div></div></div>
 <div class="community-detail" id="community-detail" aria-hidden="true"><div class="community-detail-panel" role="dialog" aria-modal="true" aria-labelledby="community-detail-title"><button type="button" class="community-detail-close" id="community-detail-close" aria-label="Close full response">×</button><p class="eyebrow" id="community-detail-kind">COMMUNITY VOICE</p><h2 id="community-detail-title">Full response</h2><div id="community-detail-content" class="community-detail-content"></div></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 
 const form = $('#idea-form');
@@ -290,33 +303,94 @@ async function checkAdmin() {
   $('#admin-dashboard').hidden = false; $('#admin-message').textContent = 'Signed in as ' + user.email;
   await loadAdminIdeas();
 }
-async function loadAdminIdeas() {
-  const rows = $('#admin-rows'); rows.innerHTML = '<p class="loading">Loading private submissions…</p>';
-  const { data, error } = await supabase.from('idea_submissions').select('*').order('created_at', { ascending: false }).limit(300);
-  if (error) { rows.textContent = 'Unable to load submissions: ' + error.message; return; }
-  const ideas = data || [];
-  adminExport.ideas = ideas; loadInsights();
-  const counts = ideas.reduce((a, x) => (a[x.status] = (a[x.status] || 0) + 1, a), {});
-  $('#admin-summary').innerHTML = [['Total', ideas.length],['New', counts.new || 0],['Reviewing', counts.reviewing || 0],['Planned', counts.planned || 0]].map(([k,v]) => `<div><small>${k}</small><strong>${v}</strong></div>`).join('');
-  rows.innerHTML = ideas.length ? ideas.map(r => `
-    <article class="admin-idea"><div class="admin-idea-top"><span class="category-tag">${esc(categories.find(c => c[0] === r.category)?.[1] || r.category)}</span><time>${new Date(r.created_at).toLocaleString()}</time></div>
-    <h3>${esc(r.title)}</h3><p>${esc(r.details)}</p><div class="admin-byline"><b>${esc(r.submitter_name || 'Name not recorded')}</b><span>${esc(r.email || 'No follow-up email')}</span></div>
-    <div class="admin-controls"><label>Status <select data-idea-status="${r.id}"><option value="new">New</option><option value="reviewing">Reviewing</option><option value="planned">Planned</option><option value="resolved">Resolved</option><option value="declined">Declined</option></select></label><button class="copy-idea" data-copy="${r.id}">Copy details</button></div></article>`).join('') : '<div class="empty-inbox">No ideas have been submitted yet.</div>';
-  rows.querySelectorAll('[data-idea-status]').forEach(select => {
-    const record = ideas.find(x => x.id === select.dataset.ideaStatus); select.value = record.status;
-    select.addEventListener('change', async () => {
-      select.disabled = true;
-      const { error: updateError } = await supabase.from('idea_submissions').update({ status: select.value }).eq('id', record.id);
-      select.disabled = false;
-      if (updateError) { $('#admin-message').textContent = 'Status update failed: ' + updateError.message; select.value = record.status; }
-      else { record.status = select.value; $('#admin-message').textContent = 'Submission status updated.'; }
+async function auditModeration(action, type, id, details = {}) {
+  const { data: { user } } = await supabase.auth.getUser();
+  const { error } = await supabase.from('idealab_moderation_audit').insert({ actor_id: user.id, action, record_type: type, record_id: id, details });
+  if (error) console.warn('Moderation audit entry could not be saved:', error.message);
+}
+function bindAdminTabs() {
+  document.querySelectorAll('[data-admin-tab]').forEach(tab => tab.addEventListener('click', () => {
+    document.querySelectorAll('[data-admin-tab]').forEach(x => x.classList.toggle('active', x === tab));
+    document.querySelectorAll('[data-admin-panel]').forEach(x => x.classList.toggle('active', x.dataset.adminPanel === tab.dataset.adminTab));
+  }));
+}
+bindAdminTabs();
+function renderModerationCard(r, type) {
+  const idea = type === 'idea';
+  const id = r.id;
+  const heading = idea ? r.title : ('Traveller survey · ' + (r.travel_purpose || 'Response'));
+  const body = idea ? r.details : [r.travel_frequency, ...(r.problems || []), r.story, ...(r.improvements || []), r.missing].filter(Boolean).join(' · ');
+  const who = idea ? (r.submitter_name || 'Name not recorded') : 'Survey respondent';
+  const status = idea ? (r.status || 'new') : (r.moderation_status || 'new');
+  return `<article class="admin-idea moderation-card" data-record-id="${esc(id)}">
+    <div class="admin-idea-top"><span class="category-tag">${esc(idea ? (categories.find(c=>c[0]===r.category)?.[1] || r.category) : 'TRAVELLER SURVEY')}</span><time>${esc(new Date(r.created_at).toLocaleString())}</time></div>
+    <h3>${esc(heading)}</h3><p class="moderation-body">${esc(body || 'No written details provided.')}</p>
+    <div class="admin-byline"><b>${esc(who)}</b><span>${esc(idea ? (r.email || 'No follow-up email') : (r.email || 'Email private / not provided'))}</span></div>
+    <div class="moderation-controls">
+      <label>Moderation <select data-moderation-status><option value="new">New</option><option value="reviewing">Reviewing</option><option value="approved">Approved</option><option value="flagged">Flagged</option><option value="spam">Spam</option><option value="resolved">Resolved</option></select></label>
+      <label class="moderation-note-label">Private note <input data-moderation-note maxlength="1000" placeholder="Internal note (never public)" value="${esc(r.moderator_note || '')}"></label>
+      <label class="moderation-visible"><input type="checkbox" data-moderation-visible ${(idea ? r.community_visible : r.community_visible) ? 'checked' : ''}> Visible in Community Voices</label>
+      ${idea ? '<button type="button" class="outline-btn" data-edit-record>Edit text</button>' : ''}
+      <button type="button" class="outline-btn" data-save-moderation>Save moderation</button>
+      <button type="button" class="danger-btn" data-delete-record>Delete permanently</button>
+    </div></article>`;
+}
+async function bindModeration(container, records, type) {
+  container.querySelectorAll('.moderation-card').forEach(card => {
+    const r = records.find(x => x.id === card.dataset.recordId);
+    const id = r.id, idea = type === 'idea';
+    const status = card.querySelector('[data-moderation-status]');
+    status.value = idea ? (r.status || 'new') : (r.moderation_status || 'new');
+    card.querySelector('[data-save-moderation]').addEventListener('click', async () => {
+      const patch = idea
+        ? { status: status.value, moderator_note: card.querySelector('[data-moderation-note]').value.trim(), community_visible: card.querySelector('[data-moderation-visible]').checked }
+        : { moderation_status: status.value, moderator_note: card.querySelector('[data-moderation-note]').value.trim(), community_visible: card.querySelector('[data-moderation-visible]').checked };
+      const { error } = await supabase.from(idea ? 'idea_submissions' : 'survey_responses').update(patch).eq('id', id);
+      if (error) { $('#admin-message').textContent = 'Could not save moderation: ' + error.message; return; }
+      await auditModeration('moderation_updated', type, id, { status: status.value, community_visible: patch.community_visible });
+      Object.assign(r, patch); $('#admin-message').textContent = 'Moderation saved.'; await loadCommunityIdeas();
+    });
+    const edit = card.querySelector('[data-edit-record]');
+    if (edit) edit.addEventListener('click', async () => {
+      const title = prompt('Edit the public idea title:', r.title);
+      if (title === null) return;
+      const details = prompt('Edit the public idea text:', r.details);
+      if (details === null) return;
+      if (title.trim().length < 4 || details.trim().length < 10) { alert('Title must be at least 4 characters and details at least 10 characters.'); return; }
+      const { error } = await supabase.from('idea_submissions').update({ title: title.trim(), details: details.trim() }).eq('id', id);
+      if (error) { $('#admin-message').textContent = 'Edit failed: ' + error.message; return; }
+      await auditModeration('idea_edited', type, id, { previous_title: r.title, title: title.trim() });
+      $('#admin-message').textContent = 'Idea updated.'; await loadAdminIdeas(); await loadCommunityIdeas();
+    });
+    card.querySelector('[data-delete-record]').addEventListener('click', async () => {
+      if (!confirm('Permanently delete this ' + type + '? This cannot be undone.')) return;
+      const { error } = await supabase.from(idea ? 'idea_submissions' : 'survey_responses').delete().eq('id', id);
+      if (error) { $('#admin-message').textContent = 'Delete failed: ' + error.message; return; }
+      await auditModeration('record_deleted', type, id, { title: idea ? r.title : 'Survey response' });
+      $('#admin-message').textContent = 'Record permanently deleted.'; await loadAdminIdeas(); await loadCommunityIdeas();
     });
   });
-  rows.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', async () => {
-    const r = ideas.find(x => x.id === button.dataset.copy);
-    await navigator.clipboard.writeText(` ${r.title}\nBy: ${r.submitter_name}\nCategory: ${r.category}\n\n${r.details}`);
-    button.textContent = 'Copied';
-  }));
+}
+async function loadAdminIdeas() {
+  const rows = $('#admin-rows'), surveyRows = $('#admin-survey-rows'), overview = $('#admin-overview-rows');
+  rows.innerHTML = surveyRows.innerHTML = overview.innerHTML = '<p class="loading">Loading private submissions…</p>';
+  const [ideaResult, surveyResult] = await Promise.all([
+    supabase.from('idea_submissions').select('*').order('created_at', { ascending: false }).limit(300),
+    supabase.from('survey_responses').select('*').order('created_at', { ascending: false }).limit(500)
+  ]);
+  if (ideaResult.error || surveyResult.error) {
+    rows.textContent = 'Unable to load submissions: ' + (ideaResult.error || surveyResult.error).message; return;
+  }
+  const ideas = ideaResult.data || [], surveys = surveyResult.data || [];
+  adminExport.ideas = ideas; adminExport.surveys = surveys;
+  const counts = ideas.reduce((a, x) => (a[x.status] = (a[x.status] || 0) + 1, a), {});
+  $('#admin-summary').innerHTML = [['Ideas', ideas.length],['Surveys', surveys.length],['New ideas', counts.new || 0],['Hidden', ideas.filter(x=>!x.community_visible).length + surveys.filter(x=>!x.community_visible).length]].map(([k,v]) => `<div><small>${k}</small><strong>${v}</strong></div>`).join('');
+  rows.innerHTML = ideas.length ? ideas.map(r => renderModerationCard(r,'idea')).join('') : '<div class="empty-inbox">No ideas have been submitted yet.</div>';
+  surveyRows.innerHTML = surveys.length ? surveys.map(r => renderModerationCard(r,'survey')).join('') : '<div class="empty-inbox">No survey responses yet.</div>';
+  const latest = [...ideas.map(r=>({...r,_kind:'idea'})),...surveys.map(r=>({...r,_kind:'survey'}))].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,8);
+  overview.innerHTML = latest.length ? latest.map(r => `<article class="admin-idea"><span class="category-tag">${r._kind === 'idea' ? 'COMMUNITY IDEA' : 'SURVEY RESPONSE'}</span><h3>${esc(r._kind === 'idea' ? r.title : (r.travel_purpose || 'Traveller survey'))}</h3><time>${esc(new Date(r.created_at).toLocaleString())}</time><p>${esc(r._kind === 'idea' ? r.details : (r.story || (r.problems || []).join(' · ') || 'Survey response'))}</p></article>`).join('') : '<p class="loading">No activity yet.</p>';
+  await bindModeration(rows, ideas, 'idea'); await bindModeration(surveyRows, surveys, 'survey');
+  await loadInsights();
 }
 $('#admin-logout').onclick = async () => { await supabase.auth.signOut(); $('#admin-dashboard').hidden = true; $('#admin-message').textContent = 'You have signed out.'; };
 if (supabase) {
