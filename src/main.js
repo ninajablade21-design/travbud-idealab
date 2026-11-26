@@ -298,7 +298,7 @@ async function callAdminRpc(name, params = {}) {
   const map = {
     idealab_admin_list: ['list', {}],
     idealab_admin_update: ['update', { type: params.p_type, id: params.p_id, status: params.p_status, note: params.p_note }],
-    idealab_admin_edit: ['edit', { id: params.p_id, title: params.p_title, details: params.p_details }],
+    idealab_admin_edit: ['edit', { type: 'idea', id: params.p_id, title: params.p_title, details: params.p_details }],
     idealab_admin_delete: ['delete', { type: params.p_type, id: params.p_id }]
   };
   const entry = map[name];
