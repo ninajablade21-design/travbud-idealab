@@ -99,7 +99,7 @@ $('#app').innerHTML = `
         <label for="sv-age">Age range <span class="optional">OPTIONAL</span></label><select id="sv-age">${opts(['Under 18','18–24','25–34','35–44','45–59','60+'],'Prefer not to say')}</select>
         <label for="sv-region">Country / region <span class="optional">OPTIONAL</span></label><input id="sv-region" maxlength="80" placeholder="e.g. India, Kerala">
         <label for="sv-email">Email <span class="optional">OPTIONAL · FOR FOLLOW-UP</span></label><input id="sv-email" type="email" maxlength="254" placeholder="you@example.com">
-        <label class="consent-row required-consent"><input type="checkbox" id="sv-consent" required><span><b>I agree my survey may be stored and reviewed. <sup>*</sup></b><small>Your email, age range and region are kept private.</small></span></label><label class="consent-row required-consent"><input type="checkbox" id="sv-community-consent" required><span><b>🌍 I agree to publish my survey answers in Community Voices. <sup>*</sup></b><small>Visitors can read your answers, including your written journey story and suggestions. Email, age range and region are never published. Do not include names, contact details, exact addresses, passwords, payment details or sensitive personal information. Public-sharing consent is required to submit this survey.</small></span></label>
+        <label class="consent-row required-consent"><input type="checkbox" id="sv-consent" required><span><b>I agree my survey may be stored and reviewed. <sup>*</sup></b><small>Your email, age range and region are kept private.</small></span></label><label class="consent-row required-consent"><input type="checkbox" id="sv-community-consent"><span><b>🌍 I agree to publish my survey answers in Community Voices. <sup>*</sup></b><small>Visitors can read your answers, including your written journey story and suggestions. Email, age range and region are never published. Do not include names, contact details, exact addresses, passwords, payment details or sensitive personal information. If you leave this unchecked, your survey is saved privately for the TravBud team.</small></span></label>
         <button class="primary submit-button" type="submit">Send survey <span>↗</span></button><p class="form-feedback" id="sv-feedback" role="status" aria-live="polite"></p>
       </form>
     </div>
@@ -413,7 +413,7 @@ $('#survey-form').addEventListener('submit', async e => {
     fb.textContent = 'Your survey was NOT confirmed as saved. Please check your connection and try again. (' + (error.code || 'network error') + ')';
     return;
   }
-  e.target.reset(); await loadCommunityIdeas(); fb.textContent = '🎉 Your survey is saved and visible in Community Voices. Email, age and region remain private.';
+  const sharedPublicly = $('#sv-community-consent').checked; e.target.reset(); await loadCommunityIdeas(); fb.textContent = sharedPublicly ? '🎉 Your survey is saved and visible in Community Voices. Email, age and region remain private.' : '✅ Your survey is saved privately for the TravBud team.';
 });
 
 // Admin insights + export (reads are blocked by RLS for non-admins).
