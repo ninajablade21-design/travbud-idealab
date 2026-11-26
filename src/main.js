@@ -125,7 +125,7 @@ $('#app').innerHTML = `
   <section class="closing section-shell"><p class="eyebrow">🌍 TRAVBUD IDEALAB</p><h2>Better journeys don't<br>happen by <em>accident.</em></h2><p>They happen when we listen to the people taking them.</p><a href="#submit" class="text-link">Add your voice <span>↗</span></a></section>
 </main>
 <footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><button id="footer-team" class="footer-team">Private team access ↗</button></footer>
-<div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Use your authorised team account. Password sign-in works without sending an email; secure email links are available as a backup.</p><div class="team-auth-tabs" role="tablist" aria-label="Team sign-in method"><button type="button" class="team-auth-tab active" id="tab-password" role="tab" aria-selected="true" aria-controls="password-login">Password</button><button type="button" class="team-auth-tab" id="tab-link" role="tab" aria-selected="false" aria-controls="link-login">Email link</button></div><form id="password-login" class="team-auth-form"><label for="password-email">Work email address</label><input id="password-email" type="email" required autocomplete="username" placeholder="name@company.com"><label for="team-password">Password</label><input id="team-password" type="password" required autocomplete="current-password" placeholder="Your team password"><button class="primary" type="submit">Sign in to private inbox <span aria-hidden="true">↗</span></button></form><form id="link-login" class="team-auth-form" hidden><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><button class="primary" type="submit">Email me a secure sign-in link <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden>
+<div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Private administrator access. Sign in with an authorised team account.</p><div class="team-auth-tabs" role="tablist" aria-label="Team sign-in method"><button type="button" class="team-auth-tab active" id="tab-password" role="tab" aria-selected="true" aria-controls="password-login">Password</button><button type="button" class="team-auth-tab" id="tab-link" role="tab" aria-selected="false" aria-controls="link-login">Email link</button></div><form id="password-login" class="team-auth-form"><label for="password-email">Work email address</label><input id="password-email" type="email" required autocomplete="username" placeholder="name@company.com"><label for="team-password">Password</label><input id="team-password" type="password" required autocomplete="current-password" placeholder="Your team password"><button class="primary" type="submit">Sign in to private inbox <span aria-hidden="true">↗</span></button></form><form id="link-login" class="team-auth-form" hidden><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><button class="primary" type="submit">Email me a secure sign-in link <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden>
 <nav class="admin-tabs" aria-label="Admin dashboard sections">
 <button class="admin-tab active" data-admin-tab="overview">Overview</button>
 <button class="admin-tab" data-admin-tab="ideas">Community ideas</button>
@@ -134,10 +134,10 @@ $('#app').innerHTML = `
 <button class="admin-tab" data-admin-tab="settings">Admin settings</button>
 </nav>
 <section class="admin-panel active" data-admin-panel="overview"><div class="admin-summary" id="admin-summary"></div><h3>Latest activity</h3><div id="admin-overview-rows" class="admin-rows"></div></section>
-<section class="admin-panel" data-admin-panel="ideas"><div class="admin-panel-heading"><div><h3>Community ideas</h3><p>Edit, review, hide or remove public submissions.</p></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div></div><div id="admin-rows" class="admin-rows"></div></section>
-<section class="admin-panel" data-admin-panel="surveys"><div class="admin-panel-heading"><div><h3>Survey responses</h3><p>Private answers and moderation controls. Contact details are never displayed in the community.</p></div></div><div id="admin-survey-rows" class="admin-rows"></div></section>
+<section class="admin-panel" data-admin-panel="ideas"><div class="admin-panel-heading"><div><h3>Community ideas</h3><p>Review, update, export or permanently remove private submissions.</p></div><div class="admin-export"><button class="outline-btn" data-export="csv">Export CSV</button><button class="outline-btn" data-export="json">Export JSON</button></div></div><div id="admin-rows" class="admin-rows"></div></section>
+<section class="admin-panel" data-admin-panel="surveys"><div class="admin-panel-heading"><div><h3>Survey responses</h3><p>Private answers and moderation controls for authorised administrators.</p></div></div><div id="admin-survey-rows" class="admin-rows"></div></section>
 <section class="admin-panel" data-admin-panel="insights"><div id="admin-insights" class="admin-insights"></div></section>
-<section class="admin-panel" data-admin-panel="settings"><h3>Admin settings</h3><p>Team access is controlled by the existing private admin allowlist. Do not share access keys or credentials in the public website.</p><p>Moderation actions are recorded in the private audit log.</p><button id="admin-logout" class="outline-btn">Sign out</button></section>
+<section class="admin-panel" data-admin-panel="settings"><h3>Admin settings</h3><p>Only authorised administrator accounts can access this workspace. Never share credentials or access keys.</p><p>Moderation actions are recorded in the private audit log.</p><button id="admin-logout" class="outline-btn">Sign out</button></section>
 </div></div></div>
 <div class="community-detail" id="community-detail" aria-hidden="true"><div class="community-detail-panel" role="dialog" aria-modal="true" aria-labelledby="community-detail-title"><button type="button" class="community-detail-close" id="community-detail-close" aria-label="Close full response">×</button><p class="eyebrow" id="community-detail-kind">COMMUNITY VOICE</p><h2 id="community-detail-title">Full response</h2><div id="community-detail-content" class="community-detail-content"></div></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
 
@@ -327,9 +327,9 @@ function renderModerationCard(r, type) {
     <h3>${esc(heading)}</h3><p class="moderation-body">${esc(body || 'No written details provided.')}</p>
     <div class="admin-byline"><b>${esc(who)}</b><span>${esc(idea ? (r.email || 'No follow-up email') : (r.email || 'Email private / not provided'))}</span></div>
     <div class="moderation-controls">
-      <label>Moderation <select data-moderation-status><option value="new">New</option><option value="reviewing">Reviewing</option><option value="approved">Approved</option><option value="flagged">Flagged</option><option value="spam">Spam</option><option value="resolved">Resolved</option></select></label>
+      <label>Moderation <select data-moderation-status><option value="new">New</option><option value="reviewing">Reviewing</option><option value="planned">Planned</option><option value="resolved">Resolved</option><option value="declined">Declined</option></select></label>
       <label class="moderation-note-label">Private note <input data-moderation-note maxlength="1000" placeholder="Internal note (never public)" value="${esc(r.moderator_note || '')}"></label>
-      <label class="moderation-visible"><input type="checkbox" data-moderation-visible ${(idea ? r.community_visible : r.community_visible) ? 'checked' : ''}> Visible in Community Voices</label>
+      <span class="moderation-private-note">🔒 Private to authorised admins</span>
       ${idea ? '<button type="button" class="outline-btn" data-edit-record>Edit text</button>' : ''}
       <button type="button" class="outline-btn" data-save-moderation>Save moderation</button>
       <button type="button" class="danger-btn" data-delete-record>Delete permanently</button>
@@ -343,8 +343,8 @@ async function bindModeration(container, records, type) {
     status.value = idea ? (r.status || 'new') : (r.moderation_status || 'new');
     card.querySelector('[data-save-moderation]').addEventListener('click', async () => {
       const patch = idea
-        ? { status: status.value, moderator_note: card.querySelector('[data-moderation-note]').value.trim(), community_visible: card.querySelector('[data-moderation-visible]').checked }
-        : { moderation_status: status.value, moderator_note: card.querySelector('[data-moderation-note]').value.trim(), community_visible: card.querySelector('[data-moderation-visible]').checked };
+        ? { status: status.value, moderator_note: card.querySelector('[data-moderation-note]').value.trim(), community_visible: false }
+        : { moderation_status: status.value, moderator_note: card.querySelector('[data-moderation-note]').value.trim(), community_visible: false };
       const { error } = await supabase.from(idea ? 'idea_submissions' : 'survey_responses').update(patch).eq('id', id);
       if (error) { $('#admin-message').textContent = 'Could not save moderation: ' + error.message; return; }
       await auditModeration('moderation_updated', type, id, { status: status.value, community_visible: patch.community_visible });
@@ -352,9 +352,9 @@ async function bindModeration(container, records, type) {
     });
     const edit = card.querySelector('[data-edit-record]');
     if (edit) edit.addEventListener('click', async () => {
-      const title = prompt('Edit the public idea title:', r.title);
+      const title = prompt('Edit the private idea title:', r.title);
       if (title === null) return;
-      const details = prompt('Edit the public idea text:', r.details);
+      const details = prompt('Edit the private idea text:', r.details);
       if (details === null) return;
       if (title.trim().length < 4 || details.trim().length < 10) { alert('Title must be at least 4 characters and details at least 10 characters.'); return; }
       const { error } = await supabase.from('idea_submissions').update({ title: title.trim(), details: details.trim() }).eq('id', id);
