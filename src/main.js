@@ -25,8 +25,12 @@ const chips = (name, list) => `<div class="chips">${list.map(v => `<label class=
 $('#app').innerHTML = `
 <header class="site-header">
   <a class="brand" href="#top" aria-label="TravBud IdeaLab home"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a>
-  <nav aria-label="Main navigation"><a href="#why">✨ Why IdeaLab</a><a href="#focus">🧭 Explore</a><a href="#community">🔒 Privacy</a><a href="#survey">📋 Survey</a><a href="#submit">💡 Share an idea</a></nav>
-  <button class="team-link" id="admin-open">Team sign in <span>↗</span></button>
+  <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">☰</button>
+  <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+    <a href="#home" data-page="home">Home</a><a href="#explore" data-page="explore">Explore</a><a href="#videos" data-page="videos">Videos</a><a href="#survey" data-page="survey">Survey</a><a href="#idea" data-page="idea">Share an idea</a><a href="#privacy" data-page="privacy">Privacy</a>
+    <button class="team-link mobile-team-link" id="mobile-admin-open" type="button">Team sign in ↗</button>
+  </nav>
+  <button class="team-link desktop-team-link" id="admin-open" type="button">Team sign in <span>↗</span></button>
 </header>
 <main id="top">
   <section class="hero">
@@ -139,7 +143,73 @@ $('#app').innerHTML = `
 <section class="admin-panel" data-admin-panel="insights"><div id="admin-insights" class="admin-insights"></div></section>
 <section class="admin-panel" data-admin-panel="settings"><h3>Admin settings</h3><p>Only authorised administrator accounts can access this workspace. Never share credentials or access keys.</p><p>Moderation actions are recorded in the private audit log.</p><button id="admin-logout" class="outline-btn">Sign out</button></section>
 </div></div></div>
-<div class="community-detail" id="community-detail" aria-hidden="true"><div class="community-detail-panel" role="dialog" aria-modal="true" aria-labelledby="community-detail-title"><button type="button" class="community-detail-close" id="community-detail-close" aria-label="Close full response">×</button><p class="eyebrow" id="community-detail-kind">COMMUNITY VOICE</p><h2 id="community-detail-title">Full response</h2><div id="community-detail-content" class="community-detail-content"></div></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div>`;
+<div class="community-detail" id="community-detail" aria-hidden="true"><div class="community-detail-panel" role="dialog" aria-modal="true" aria-labelledby="community-detail-title"><button type="button" class="community-detail-close" id="community-detail-close" aria-label="Close full response">×</button><p class="eyebrow" id="community-detail-kind">COMMUNITY VOICE</p><h2 id="community-detail-title">Full response</h2><div id="community-detail-content" class="community-detail-content"></div></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div>;
+
+// Convert the long landing page into in-site views. Only the selected view is shown.
+const mainView = $('#top');
+const viewDefinitions = [
+  ['home', 'Home', ['.hero', '.ticker', '.closing']],
+  ['explore', 'Explore', ['#why', '#focus', '.process']],
+  ['videos', 'Videos', ['#films']],
+  ['survey', 'Traveller survey', ['#survey']],
+  ['idea', 'Share an idea', ['#submit']],
+  ['privacy', 'Privacy', ['#community']]
+];
+for (const [key, title, selectors] of viewDefinitions) {
+  const view = document.createElement('div');
+  view.className = 'app-view';
+  view.dataset.view = key;
+  view.setAttribute('aria-label', title);
+  selectors.forEach(selector => {
+    const section = mainView.querySelector(selector);
+    if (section) view.appendChild(section);
+  });
+  mainView.appendChild(view);
+}
+function pageFromHash(hash) {
+  const value = (hash || '#home').replace(/^#/, '');
+  const aliases = { top: 'home', why: 'explore', focus: 'explore', films: 'videos', survey: 'survey', submit: 'idea', community: 'privacy' };
+  const page = aliases[value] || value;
+  return viewDefinitions.some(([key]) => key === page) ? page : 'home';
+}
+function showPage(page, updateHistory = false) {
+  const next = viewDefinitions.some(([key]) => key === page) ? page : 'home';
+  document.querySelectorAll('.app-view').forEach(view => {
+    const active = view.dataset.view === next;
+    view.hidden = !active;
+    view.setAttribute('aria-hidden', String(!active));
+  });
+  document.querySelectorAll('.site-nav [data-page]').forEach(link => {
+    const active = link.dataset.page === next;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
+  $('#site-nav').classList.remove('mobile-open');
+  $('#mobile-menu-toggle').setAttribute('aria-expanded', 'false');
+  $('#mobile-menu-toggle').textContent = '☰';
+  if (updateHistory && location.hash !== '#' + next) history.pushState({ page: next }, '', '#' + next);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+document.addEventListener('click', event => {
+  const link = event.target.closest('a[href^="#"]');
+  if (!link) return;
+  const hash = link.getAttribute('href');
+  if (!hash || hash === '#') return;
+  event.preventDefault();
+  showPage(pageFromHash(hash), true);
+});
+window.addEventListener('popstate', () => showPage(pageFromHash(location.hash)));
+window.addEventListener('hashchange', () => showPage(pageFromHash(location.hash)));
+$('#mobile-menu-toggle').addEventListener('click', () => {
+  const nav = $('#site-nav');
+  const open = !nav.classList.contains('mobile-open');
+  nav.classList.toggle('mobile-open', open);
+  $('#mobile-menu-toggle').setAttribute('aria-expanded', String(open));
+  $('#mobile-menu-toggle').textContent = open ? '×' : '☰';
+});
+$('#mobile-admin-open').addEventListener('click', openAdmin);
+showPage(pageFromHash(location.hash));
 
 const form = $('#idea-form');
 $('#idea-details').addEventListener('input', e => $('#char-count').textContent = e.target.value.length + ' / 5000');
