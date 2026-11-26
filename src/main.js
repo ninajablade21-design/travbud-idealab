@@ -34,7 +34,7 @@ $('#app').innerHTML = `
       <p class="eyebrow"><span class="eyebrow-dot"></span> THE TRAVBUD INNOVATION LAB</p>
       <h1>Travel has a<br>better <em>way.</em></h1>
       <p class="hero-lead">We're shaping TravBud before launch. Tell us what makes travelling difficult, what you wish existed, and what would make your next journey feel easier.</p>
-      <a class="primary" href="#submit">💡 Share your idea <span>↗</span></a>
+      <a class="primary share-idea-cta" href="#submit"><span class="share-idea-icon" aria-hidden="true">💡</span><span class="share-idea-label">Share your idea</span><span class="share-idea-arrow" aria-hidden="true">↗</span></a>
       <div class="privacy-inline"><span class="lock">✳</span><span><b>Share ideas with the community</b><br>Your idea appears publicly after submission. Contact details stay private.</span></div>
     </div>
     <div class="hero-art" aria-label="Abstract illustration of connected travel routes">
