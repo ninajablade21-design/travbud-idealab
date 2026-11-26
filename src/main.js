@@ -25,7 +25,7 @@ const chips = (name, list) => `<div class="chips">${list.map(v => `<label class=
 $('#app').innerHTML = `
 <header class="site-header">
   <a class="brand" href="#top" aria-label="TravBud IdeaLab home"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a>
-  <nav aria-label="Main navigation"><a href="#why">Why IdeaLab</a><a href="#focus">What we're exploring</a><a href="#survey">Survey</a><a href="#submit">Share an idea</a></nav>
+  <nav aria-label="Main navigation"><a href="#why">Why IdeaLab</a><a href="#focus">What we're exploring</a><a href="#community">Community Voices</a><a href="#survey">Survey</a><a href="#submit">Share an idea</a></nav>
   <button class="team-link" id="admin-open">Team sign in <span>↗</span></button>
 </header>
 <main id="top">
@@ -35,7 +35,7 @@ $('#app').innerHTML = `
       <h1>Travel has a<br>better <em>way.</em></h1>
       <p class="hero-lead">We're shaping TravBud before launch. Tell us what makes travelling difficult, what you wish existed, and what would make your next journey feel easier.</p>
       <a class="primary" href="#submit">Share your idea <span>↗</span></a>
-      <div class="privacy-inline"><span class="lock">⌑</span><span><b>A private feedback space</b><br>Your submission is only visible to the TravBud team.</span></div>
+      <div class="privacy-inline"><span class="lock">✳</span><span><b>Share ideas with the community</b><br>Your idea appears publicly after submission. Contact details stay private.</span></div>
     </div>
     <div class="hero-art" aria-label="Abstract illustration of connected travel routes">
       <div class="art-orbit orbit-a"></div><div class="art-orbit orbit-b"></div><div class="art-route"></div>
@@ -45,6 +45,7 @@ $('#app').innerHTML = `
     </div>
   </section>
   <div class="ticker"><span>REAL TRAVEL PROBLEMS</span><b>✳</b><span>USEFUL IDEAS</span><b>✳</b><span>ACCESS FOR EVERYONE</span><b>✳</b><span>BETTER JOURNEYS</span><b>✳</b><span>REAL TRAVEL PROBLEMS</span></div>
+  <section id="community" class="community-section section-shell"><div class="community-heading"><div><p class="eyebrow">COMMUNITY VOICES</p><h2>Ideas from <em>travellers.</em></h2></div><p>New ideas shared with the community appear here automatically. Personal contact details and survey answers are never shown.</p></div><div id="community-feed" class="community-feed" aria-live="polite"><p class="community-loading">Loading community ideas…</p></div></section>
   <section id="why" class="intro section-shell">
     <div><p class="eyebrow">01 / WHY IDEALAB EXISTS</p><h2>A private place to<br><em>shape what's next.</em></h2></div>
     <div class="intro-copy"><p>TravBud is still being shaped. Before we build more, we want to understand the real-world challenges people face when planning, booking and taking trips.</p><p>IdeaLab is a private channel between travellers and the people building TravBud. Share the small frustrations, big barriers and ambitious ideas. Our team will read every submission and use the patterns to guide what we build.</p><div class="principle"><span>01</span> Listen before we build <span>02</span> Design for real people</div></div>
@@ -105,7 +106,7 @@ $('#app').innerHTML = `
   </section>
   <section id="submit" class="submit-section">
     <div class="submit-shell">
-      <div class="submit-intro"><p class="eyebrow">SHARE AN IDEA</p><h2>Help shape<br><em>better journeys.</em></h2><p>Share a challenge you've faced or an idea that could make travelling simpler, more connected or more inclusive.</p><div class="private-card"><span>⌑</span><div><b>Private by design</b><small>Your name and submission are shared only with authorised TravBud IdeaLab admins. Nothing is published publicly.</small></div></div></div>
+      <div class="submit-intro"><p class="eyebrow">SHARE AN IDEA</p><h2>Help shape<br><em>better journeys.</em></h2><p>Share a challenge you've faced or an idea that could make travelling simpler, more connected or more inclusive.</p><div class="private-card"><span>✳</span><div><b>Community sharing</b><small>Your first name, idea title, category and idea text will be visible to everyone after you submit. Your email and device details stay private. Do not include personal or sensitive information in your idea.</small></div></div></div>
       <form id="idea-form" class="idea-form">
         <div class="form-heading"><span>IDEA SUBMISSION</span><span>PRIVATE INBOX · 01</span></div>
         <label for="submitter-name">Your name <sup>*</sup></label><input id="submitter-name" name="submitter_name" required minlength="2" maxlength="80" autocomplete="name" placeholder="How should we address you?">
@@ -116,7 +117,7 @@ $('#app').innerHTML = `
         <label for="idea-details">Tell us more <sup>*</sup></label><textarea id="idea-details" name="details" required minlength="10" maxlength="5000" rows="6" placeholder="What happened? What would you change? Who would this help? Add as much context as you like."></textarea><div class="char-count" id="char-count">0 / 5000</div>
         <label for="idea-email">Email <span class="optional">OPTIONAL · FOR FOLLOW-UP</span></label><input id="idea-email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com">
         <label class="consent-row"><input type="checkbox" id="consent-device" name="consent_device_data"><span><b>Allow basic device context (optional)</b><small>If selected, we'll include browser and screen-size details to help diagnose technical issues. No precise location or device fingerprint is collected.</small></span></label>
-        <label class="consent-row required-consent"><input type="checkbox" id="privacy-consent" required><span><b>I understand this is a private submission. <sup>*</sup></b><small>My name and feedback may be reviewed by authorised TravBud IdeaLab team members to improve the product.</small></span></label>
+        <label class="consent-row required-consent"><input type="checkbox" id="privacy-consent" required><span><b>I agree to publish this idea in Community Voices. <sup>*</sup></b><small>My first name, idea title, category and idea text will be public immediately after submission. My email and device details remain private. I will not include sensitive personal information.</small></span></label>
         <button class="primary submit-button" type="submit">Send my idea <span>↗</span></button><p class="form-feedback" id="form-feedback" role="status" aria-live="polite"></p><p class="form-footnote">Required fields are marked *. Please don't include passwords, payment details or other sensitive personal information.</p>
       </form>
     </div>
@@ -140,7 +141,7 @@ form.addEventListener('submit', async e => {
   if (name.length < 2 || title.length < 4 || details.length < 10) { feedback.textContent = 'Please complete the required fields before sending.'; return; }
   const consent = $('#consent-device').checked;
   const deviceContext = consent ? { user_agent: navigator.userAgent.slice(0, 300), language: navigator.language || null, screen: { width: screen.width, height: screen.height }, viewport: { width: innerWidth, height: innerHeight } } : {};
-  const payload = { submitter_name: name, category: data.get('category'), audience: $('#idea-audience').value || null, impact: $('#idea-impact').value || null, title, details, email: String(data.get('email') || '').trim() || null, consent_device_data: consent, device_context: deviceContext, status: 'new' };
+  const payload = { submitter_name: name, category: data.get('category'), audience: $('#idea-audience').value || null, impact: $('#idea-impact').value || null, title, details, email: String(data.get('email') || '').trim() || null, consent_device_data: consent, device_context: deviceContext, community_visible: true, status: 'new' };
   const button = form.querySelector('button[type="submit"]');
   button.disabled = true; button.textContent = 'Saving securely…'; feedback.textContent = '';
   let submitError = null;
@@ -157,8 +158,9 @@ form.addEventListener('submit', async e => {
     return;
   }
   form.reset(); $('#char-count').textContent = '0 / 5000';
-  feedback.textContent = 'Thank you. Your idea has been sent privately to the TravBud team.';
-  $('#toast').textContent = 'Your idea is safely in the IdeaLab inbox.'; $('#toast').classList.add('show');
+  await loadCommunityIdeas();
+  feedback.textContent = 'Thank you. Your idea is now visible in Community Voices. Your contact details remain private.';
+  $('#toast').textContent = 'Your idea has been shared with the TravBud community.'; $('#toast').classList.add('show');
   window.setTimeout(() => $('#toast').classList.remove('show'), 4500);
 });
 
@@ -340,6 +342,29 @@ if (supabase) {
   supabase.auth.getSession().then(({ data }) => { if (data.session) checkAdmin(); });
 }
 
+
+
+async function loadCommunityIdeas() {
+  const feed = $('#community-feed');
+  if (!supabase) { feed.innerHTML = '<p class="community-loading">Community ideas are temporarily unavailable.</p>'; return; }
+  feed.innerHTML = '<p class="community-loading">Loading community ideas…</p>';
+  try {
+    const { data, error } = await supabase.from('community_ideas')
+      .select('id,created_at,category,title,details,display_name,audience,impact')
+      .order('created_at', { ascending: false }).limit(100);
+    if (error) throw error;
+    if (!data?.length) { feed.innerHTML = '<p class="community-loading">No community ideas yet. Be the first to share one.</p>'; return; }
+    feed.innerHTML = data.map(item => {
+      const category = categories.find(c => c[0] === item.category)?.[1] || item.category || 'Idea';
+      const date = new Date(item.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      return '<article class="community-card"><div class="community-card-top"><span class="category-tag">' + esc(category) + '</span><time>' + esc(date) + '</time></div><h3>' + esc(item.title) + '</h3><p>' + esc(item.details) + '</p><div class="community-byline">Shared by <b>' + esc(item.display_name || 'Traveller') + '</b></div></article>';
+    }).join('');
+  } catch (error) {
+    console.error('Community feed failed:', error);
+    feed.innerHTML = '<p class="community-loading">Community ideas could not be loaded right now. Please refresh the page.</p>';
+  }
+}
+loadCommunityIdeas();
 
 // Traveller survey submit (max 5 improvements enforced here and in the database).
 const checked = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(x => x.value);
