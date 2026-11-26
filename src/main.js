@@ -129,7 +129,7 @@ $('#app').innerHTML = `
   <section class="closing section-shell"><p class="eyebrow">🌍 TRAVBUD IDEALAB</p><h2>Better journeys don't<br>happen by <em>accident.</em></h2><p>They happen when we listen to the people taking them.</p><a href="#submit" class="text-link">Add your voice <span>↗</span></a></section>
 </main>
 <footer><a class="brand" href="#top"><span class="brand-mark">✳</span><span>travbud <i>idealab</i></span></a><span>LISTEN FIRST. BUILD BETTER.</span><button id="footer-team" class="footer-team">Private team access ↗</button></footer>
-<div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Private administrator access. Sign in with an authorised team account.</p><div class="team-auth-tabs" role="tablist" aria-label="Team sign-in method"><button type="button" class="team-auth-tab active" id="tab-password" role="tab" aria-selected="true" aria-controls="password-login">Password</button><button type="button" class="team-auth-tab" id="tab-link" role="tab" aria-selected="false" aria-controls="link-login">Email link</button></div><form id="password-login" class="team-auth-form"><label for="password-email">Work email address</label><input id="password-email" type="email" required autocomplete="username" placeholder="name@company.com"><label for="team-password">Password</label><input id="team-password" type="password" required autocomplete="current-password" placeholder="Your team password"><button class="primary" type="submit">Sign in to private inbox <span aria-hidden="true">↗</span></button></form><form id="link-login" class="team-auth-form" hidden><label for="admin-email">Work email address</label><input id="admin-email" type="email" required autocomplete="email" placeholder="name@company.com"><button class="primary" type="submit">Email me a secure sign-in link <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden>
+<div class="modal" id="admin-modal" aria-hidden="true" inert><div class="dialog"><button id="admin-close" class="close" aria-label="Close">×</button><p class="eyebrow">PRIVATE TEAM WORKSPACE</p><h2>IdeaLab inbox</h2><p class="dialog-copy">Private administrator access. Enter the single Admin Access Key.</p><form id="admin-key-login" class="team-auth-form"><label for="admin-access-key">Admin Access Key</label><input id="admin-access-key" type="password" required minlength="32" maxlength="128" autocomplete="current-password" placeholder="Paste your private admin access key"><button class="primary" type="submit">Unlock private inbox <span aria-hidden="true">↗</span></button></form><p id="admin-message" class="admin-message" role="status" aria-live="polite"></p><div id="admin-dashboard" hidden>
 <nav class="admin-tabs" aria-label="Admin dashboard sections">
 <button class="admin-tab active" data-admin-tab="overview">Overview</button>
 <button class="admin-tab" data-admin-tab="ideas">Community ideas</button>
@@ -257,8 +257,9 @@ function openAdmin(event) {
   modal.setAttribute('aria-hidden', 'false');
   modal.classList.add('open');
   $('#admin-close').focus();
-  if (supabase) checkAdmin();
-  else $('#admin-message').textContent = 'Admin service is not connected.';
+  $('#admin-key-login').hidden = false;
+  $('#admin-dashboard').hidden = true;
+  if (!supabase) $('#admin-message').textContent = 'Admin service is not connected.';
 }
 function closeAdmin() {
   if (!modal.classList.contains('open')) return;
@@ -275,109 +276,39 @@ modal.addEventListener('click', e => { if (e.target === modal) closeAdmin(); });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && modal.classList.contains('open')) closeAdmin();
 });
-function showTeamAuthTab(tab) {
-  const password = tab === 'password';
-  $('#password-login').hidden = !password;
-  $('#link-login').hidden = password;
-  $('#tab-password').classList.toggle('active', password);
-  $('#tab-link').classList.toggle('active', !password);
-  $('#tab-password').setAttribute('aria-selected', String(password));
-  $('#tab-link').setAttribute('aria-selected', String(!password));
-  $('#admin-message').textContent = '';
+let activeAdminKey = '';
+async function callAdminRpc(name, params = {}) {
+  if (!supabase || !activeAdminKey) return { data: null, error: new Error('Admin session is locked.') };
+  return supabase.rpc(name, { ...params, p_key: activeAdminKey });
 }
-$('#tab-password').addEventListener('click', () => showTeamAuthTab('password'));
-$('#tab-link').addEventListener('click', () => showTeamAuthTab('link'));
-
-$('#password-login').addEventListener('submit', async e => {
-  e.preventDefault();
-  if (!supabase) return;
-  const email = $('#password-email').value.trim().toLowerCase();
-  const password = $('#team-password').value;
-  const button = $('#password-login button[type="submit"]');
-  button.disabled = true; button.textContent = 'Signing in securely…';
-  $('#admin-message').textContent = 'Checking your team account…';
-  try {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    button.disabled = false; button.textContent = 'Sign in to private inbox ↗';
-    if (error) {
-      $('#admin-message').textContent = /invalid login credentials/i.test(error.message || '')
-        ? 'Email or password is incorrect. Check your details, or use the Email link tab if you need passwordless access.'
-        : (error.message || 'Sign-in failed. Please try again.');
-      return;
-    }
-    $('#team-password').value = '';
-    $('#admin-message').textContent = 'Signed in. Checking private team access…';
-    await checkAdmin();
-  } catch (error) {
-    button.disabled = false; button.textContent = 'Sign in to private inbox ↗';
-    $('#admin-message').textContent = 'Connection issue. Check your internet and try again.';
-  }
-});
-
-const OTP_COOLDOWN_STORAGE = 'travbud-idealab-otp-next-request';
-let otpCooldownInterval = null;
-function setOtpCooldown(seconds, message) {
-  const until = Date.now() + seconds * 1000;
-  try { localStorage.setItem(OTP_COOLDOWN_STORAGE, String(until)); } catch {}
-  const button = $('#link-login button[type="submit"]');
-  clearInterval(otpCooldownInterval);
-  const update = () => {
-    const remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
-    button.disabled = remaining > 0;
-    button.textContent = remaining ? 'Try again in ' + remaining + 's' : 'Email me a secure sign-in link ↗';
-    if (!remaining) clearInterval(otpCooldownInterval);
-  };
+function lockAdmin(message = 'You have signed out.') {
+  activeAdminKey = '';
+  $('#admin-dashboard').hidden = true;
+  $('#admin-key-login').hidden = false;
+  $('#admin-access-key').value = '';
   $('#admin-message').textContent = message;
-  update();
 }
-try {
-  const until = Number(localStorage.getItem(OTP_COOLDOWN_STORAGE) || 0);
-  const remaining = Math.ceil((until - Date.now()) / 1000);
-  if (remaining > 0) setOtpCooldown(remaining, 'A sign-in email was recently requested. Please wait before requesting another.');
-} catch {}
-$('#link-login').addEventListener('submit', async e => {
+$('#admin-key-login').addEventListener('submit', async e => {
   e.preventDefault();
-  if (!supabase) return;
-  const email = $('#admin-email').value.trim().toLowerCase();
-  const button = $('#link-login button[type="submit"]');
-  if (!email || button.disabled) return;
-  button.disabled = true; button.textContent = 'Sending secure link…';
-  $('#admin-message').textContent = 'Preparing your private IdeaLab sign-in email…';
+  const key = $('#admin-access-key').value.trim();
+  const button = e.target.querySelector('button[type="submit"]');
+  if (!supabase || key.length < 32) { $('#admin-message').textContent = 'Enter a valid Admin Access Key.'; return; }
+  button.disabled = true; button.textContent = 'Verifying key…';
   try {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false, emailRedirectTo: IDEALAB_URL }
-    });
-    if (error) {
-      if (error.status === 429 || /rate.?limit|too many requests/i.test(error.message || '')) {
-        setOtpCooldown(600, 'Email sending is temporarily limited by Supabase. Use Password sign-in instead, or wait before requesting another link. Custom SMTP is needed for reliable email delivery.');
-      } else {
-        button.disabled = false; button.textContent = 'Email me a secure sign-in link ↗';
-        $('#admin-message').textContent = /signups not allowed/i.test(error.message || '')
-          ? 'This address is not registered as a team account. An administrator must create it first.'
-          : (error.message || 'We could not send your sign-in link.');
-      }
-      return;
-    }
-    setOtpCooldown(60, 'Check your inbox for your secure TravBud IdeaLab link. Open the newest email on this device.');
+    const { data, error } = await supabase.rpc('idealab_admin_verify', { p_key: key });
+    if (error || data !== true) { activeAdminKey = ''; $('#admin-message').textContent = 'Access key is incorrect or temporarily rate-limited.'; return; }
+    activeAdminKey = key;
+    $('#admin-key-login').hidden = true;
+    $('#admin-dashboard').hidden = false;
+    $('#admin-message').textContent = 'Access granted. Loading private submissions…';
+    await loadAdminIdeas();
   } catch (error) {
-    button.disabled = false; button.textContent = 'Email me a secure sign-in link ↗';
-    $('#admin-message').textContent = 'Connection issue. Check your internet and try again.';
+    $('#admin-message').textContent = 'Could not verify access. Check your connection and try again.';
+  } finally {
+    button.disabled = false; button.textContent = 'Unlock private inbox ↗';
   }
 });
-async function checkAdmin() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  const { data: allow, error } = await supabase.from('idealab_admins').select('user_id').eq('user_id', user.id).maybeSingle();
-  if (error || !allow) { $('#admin-message').textContent = 'This account is not authorised for the private IdeaLab inbox.'; return; }
-  $('#admin-dashboard').hidden = false; $('#admin-message').textContent = 'Signed in as ' + user.email;
-  await loadAdminIdeas();
-}
-async function auditModeration(action, type, id, details = {}) {
-  const { data: { user } } = await supabase.auth.getUser();
-  const { error } = await supabase.from('idealab_moderation_audit').insert({ actor_id: user.id, action, record_type: type, record_id: id, details });
-  if (error) console.warn('Moderation audit entry could not be saved:', error.message);
-}
+async function auditModeration() { return; }
 function bindAdminTabs() {
   document.querySelectorAll('[data-admin-tab]').forEach(tab => tab.addEventListener('click', () => {
     document.querySelectorAll('[data-admin-tab]').forEach(x => x.classList.toggle('active', x === tab));
@@ -408,17 +339,17 @@ function renderModerationCard(r, type) {
 async function bindModeration(container, records, type) {
   container.querySelectorAll('.moderation-card').forEach(card => {
     const r = records.find(x => x.id === card.dataset.recordId);
+    if (!r) return;
     const id = r.id, idea = type === 'idea';
     const status = card.querySelector('[data-moderation-status]');
     status.value = idea ? (r.status || 'new') : (r.moderation_status || 'new');
     card.querySelector('[data-save-moderation]').addEventListener('click', async () => {
-      const patch = idea
-        ? { status: status.value, moderator_note: card.querySelector('[data-moderation-note]').value.trim(), community_visible: false }
-        : { moderation_status: status.value, moderator_note: card.querySelector('[data-moderation-note]').value.trim(), community_visible: false };
-      const { error } = await supabase.from(idea ? 'idea_submissions' : 'survey_responses').update(patch).eq('id', id);
+      const { error } = await callAdminRpc('idealab_admin_update', {
+        p_type: type, p_id: id, p_status: status.value,
+        p_note: card.querySelector('[data-moderation-note]').value.trim()
+      });
       if (error) { $('#admin-message').textContent = 'Could not save moderation: ' + error.message; return; }
-      await auditModeration('moderation_updated', type, id, { status: status.value, community_visible: patch.community_visible });
-      Object.assign(r, patch); $('#admin-message').textContent = 'Moderation saved.'; await loadCommunityIdeas();
+      $('#admin-message').textContent = 'Moderation saved.'; await loadAdminIdeas();
     });
     const edit = card.querySelector('[data-edit-record]');
     if (edit) edit.addEventListener('click', async () => {
@@ -427,34 +358,31 @@ async function bindModeration(container, records, type) {
       const details = prompt('Edit the private idea text:', r.details);
       if (details === null) return;
       if (title.trim().length < 4 || details.trim().length < 10) { alert('Title must be at least 4 characters and details at least 10 characters.'); return; }
-      const { error } = await supabase.from('idea_submissions').update({ title: title.trim(), details: details.trim() }).eq('id', id);
+      const { error } = await callAdminRpc('idealab_admin_edit', { p_id: id, p_title: title.trim(), p_details: details.trim() });
       if (error) { $('#admin-message').textContent = 'Edit failed: ' + error.message; return; }
-      await auditModeration('idea_edited', type, id, { previous_title: r.title, title: title.trim() });
-      $('#admin-message').textContent = 'Idea updated.'; await loadAdminIdeas(); await loadCommunityIdeas();
+      $('#admin-message').textContent = 'Idea updated.'; await loadAdminIdeas();
     });
     card.querySelector('[data-delete-record]').addEventListener('click', async () => {
       if (!confirm('Permanently delete this ' + type + '? This cannot be undone.')) return;
-      const { error } = await supabase.from(idea ? 'idea_submissions' : 'survey_responses').delete().eq('id', id);
+      const { error } = await callAdminRpc('idealab_admin_delete', { p_type: type, p_id: id });
       if (error) { $('#admin-message').textContent = 'Delete failed: ' + error.message; return; }
-      await auditModeration('record_deleted', type, id, { title: idea ? r.title : 'Survey response' });
-      $('#admin-message').textContent = 'Record permanently deleted.'; await loadAdminIdeas(); await loadCommunityIdeas();
+      $('#admin-message').textContent = 'Record permanently deleted.'; await loadAdminIdeas();
     });
   });
 }
 async function loadAdminIdeas() {
   const rows = $('#admin-rows'), surveyRows = $('#admin-survey-rows'), overview = $('#admin-overview-rows');
   rows.innerHTML = surveyRows.innerHTML = overview.innerHTML = '<p class="loading">Loading private submissions…</p>';
-  const [ideaResult, surveyResult] = await Promise.all([
-    supabase.from('idea_submissions').select('*').order('created_at', { ascending: false }).limit(300),
-    supabase.from('survey_responses').select('*').order('created_at', { ascending: false }).limit(500)
-  ]);
-  if (ideaResult.error || surveyResult.error) {
-    rows.textContent = 'Unable to load submissions: ' + (ideaResult.error || surveyResult.error).message; return;
+  const { data, error } = await callAdminRpc('idealab_admin_list');
+  if (error || !data) {
+    $('#admin-message').textContent = 'Unable to load private submissions. ' + (error?.message || 'Please unlock the inbox again.');
+    lockAdmin('Your admin session could not be verified. Enter the key again.');
+    return;
   }
-  const ideas = ideaResult.data || [], surveys = surveyResult.data || [];
+  const ideas = data.ideas || [], surveys = data.surveys || [];
   adminExport.ideas = ideas; adminExport.surveys = surveys;
   const counts = ideas.reduce((a, x) => (a[x.status] = (a[x.status] || 0) + 1, a), {});
-  $('#admin-summary').innerHTML = [['Ideas', ideas.length],['Surveys', surveys.length],['New ideas', counts.new || 0],['Hidden', ideas.filter(x=>!x.community_visible).length + surveys.filter(x=>!x.community_visible).length]].map(([k,v]) => `<div><small>${k}</small><strong>${v}</strong></div>`).join('');
+  $('#admin-summary').innerHTML = [['Ideas', ideas.length],['Surveys', surveys.length],['New ideas', counts.new || 0],['Private records', ideas.length + surveys.length]].map(([k,v]) => `<div><small>${k}</small><strong>${v}</strong></div>`).join('');
   rows.innerHTML = ideas.length ? ideas.map(r => renderModerationCard(r,'idea')).join('') : '<div class="empty-inbox">No ideas have been submitted yet.</div>';
   surveyRows.innerHTML = surveys.length ? surveys.map(r => renderModerationCard(r,'survey')).join('') : '<div class="empty-inbox">No survey responses yet.</div>';
   const latest = [...ideas.map(r=>({...r,_kind:'idea'})),...surveys.map(r=>({...r,_kind:'survey'}))].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,8);
@@ -462,29 +390,7 @@ async function loadAdminIdeas() {
   await bindModeration(rows, ideas, 'idea'); await bindModeration(surveyRows, surveys, 'survey');
   await loadInsights();
 }
-$('#admin-logout').onclick = async () => { await supabase.auth.signOut(); $('#admin-dashboard').hidden = true; $('#admin-message').textContent = 'You have signed out.'; };
-if (supabase) {
-  // Keep authorised admins signed in across visits; only request a new link after sign-out or session expiry.
-  // Supabase JS defaults to persistent local sessions; PKCE makes the email callback safer.
-  // Supabase consumes valid OTP links from the URL. Explain expired links clearly
-  // and remove their one-time error parameters so refreshes do not keep showing them.
-  const authParams = new URLSearchParams(location.hash.replace(/^#/, ''));
-  const queryParams = new URLSearchParams(location.search);
-  const authError = authParams.get('error_description') || queryParams.get('error_description');
-  const authErrorCode = authParams.get('error_code') || queryParams.get('error_code');
-  if (authErrorCode === 'otp_expired' || authError) {
-    $('#admin-modal').classList.add('open');
-    $('#admin-modal').setAttribute('aria-hidden', 'false');
-    $('#admin-message').textContent = authErrorCode === 'otp_expired'
-      ? 'That sign-in link has expired or was already used. Enter your admin email and request a fresh link.'
-      : 'Sign-in could not be completed. Please request a fresh secure link.';
-    history.replaceState({}, document.title, IDEALAB_URL);
-  }
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' && session?.user) setTimeout(checkAdmin, 0);
-  });
-  supabase.auth.getSession().then(({ data }) => { if (data.session) checkAdmin(); });
-}
+$('#admin-logout').onclick = () => lockAdmin();
 
 
 
@@ -542,14 +448,6 @@ let adminExport = { ideas: [], surveys: [] };
 const barsHtml = (title, rows) => { const top = Object.entries(rows).sort((a, b) => b[1] - a[1]).slice(0, 8), max = top[0]?.[1] || 1;
   return `<div class="insight"><h4>${title}</h4>${top.length ? top.map(([k, n]) => `<div class="barrow"><span>${esc(k)}</span><div class="bar"><i style="transform:scaleX(${n / max})"></i></div><b>${n}</b></div>`).join('') : '<p class="loading">No survey data yet.</p>'}</div>`; };
 async function loadInsights() {
-  const { data, error } = await supabase.from('survey_responses').select('*').order('created_at', { ascending: false }).limit(1000);
-  if (error) {
-    $('#admin-insights').textContent = /not found|schema cache|PGRST205|does not exist/i.test(`${error.code || ''} ${error.message || ''}`)
-      ? 'Survey insights will appear after the survey_responses database migration is applied.'
-      : 'Unable to load survey insights: ' + error.message;
-    return;
-  }
-  adminExport.surveys = data || [];
   const tally = (f) => adminExport.surveys.reduce((a, r) => ((r[f] || []).forEach(x => a[x] = (a[x] || 0) + 1), a), {});
   $('#admin-insights').innerHTML = `<p class="insight-count">${adminExport.surveys.length} survey responses</p>` + barsHtml('Most reported travel difficulties', tally('problems')) + barsHtml('Most requested improvements', tally('improvements'));
 }
